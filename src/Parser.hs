@@ -24,8 +24,11 @@ parsearWollok fileName fileContent = do
   EncodedJSON resultado <- withSession defaultConfig $ \s -> eval @EncodedJSON s
     [js|
         try {
-          const wollok = require('/home/ludat/Projects/curso-vms/wollok/wollok-ts/dist/index.js');
-          return wollok.parse.File($encodedFilename).tryParse($encodedContent);
+          const currentDirectory = process.cwd();
+          const wollokTsRoot = `${currentDirectory}/wollok-ts`
+          const wollokTs = require(`${wollokTsRoot}/dist/index.js`);
+
+          return wollokTs.parse.File($encodedFilename).tryParse($encodedContent);
         } catch (e) {
           return {exception: e.message, stack: e.stack};
         }
