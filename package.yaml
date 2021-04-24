@@ -31,7 +31,7 @@ dependencies:
 - relude
 - base-noprelude >= 4.7 && < 5
 
-extensions:
+default-extensions:
 - QuasiQuotes
 - LambdaCase
 - StrictData
