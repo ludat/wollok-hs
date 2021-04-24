@@ -1,0 +1,5 @@
+class Main {
+    method lala() {
+        return 7;
+    }
+}

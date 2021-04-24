@@ -1,0 +1,93 @@
+cabal-version: 1.12
+
+-- This file has been generated from package.yaml by hpack version 0.33.0.
+--
+-- see: https://github.com/sol/hpack
+--
+-- hash: 1867abc385e869a5cd149d0b56d41fbcb91821c46ba2761214c1f89646013213
+
+name:           wollok
+version:        0.1.0.0
+description:    Please see the README on GitHub at <https://github.com/githubuser/wollok#readme>
+homepage:       https://github.com/githubuser/wollok#readme
+bug-reports:    https://github.com/githubuser/wollok/issues
+author:         Author name here
+maintainer:     example@example.com
+copyright:      2021 Author name here
+license:        BSD3
+license-file:   LICENSE
+build-type:     Simple
+extra-source-files:
+    README.md
+    ChangeLog.md
+
+source-repository head
+  type: git
+  location: https://github.com/githubuser/wollok
+
+library
+  exposed-modules:
+      AST
+      Compile
+      Lib
+      Parser
+      Prelude
+  other-modules:
+      Paths_wollok
+  hs-source-dirs:
+      src
+  build-depends:
+      aeson
+    , aeson-pretty
+    , base-noprelude >=4.7 && <5
+    , bytestring
+    , inline-js
+    , inline-js-core
+    , pretty-simple
+    , relude
+    , scientific
+    , text
+  default-language: Haskell2010
+
+executable wollok-exe
+  main-is: Main.hs
+  other-modules:
+      Paths_wollok
+  hs-source-dirs:
+      app
+  ghc-options: -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+      aeson
+    , aeson-pretty
+    , base-noprelude >=4.7 && <5
+    , bytestring
+    , inline-js
+    , inline-js-core
+    , pretty-simple
+    , relude
+    , scientific
+    , text
+    , wollok
+  default-language: Haskell2010
+
+test-suite wollok-test
+  type: exitcode-stdio-1.0
+  main-is: Spec.hs
+  other-modules:
+      Paths_wollok
+  hs-source-dirs:
+      test
+  ghc-options: -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+      aeson
+    , aeson-pretty
+    , base-noprelude >=4.7 && <5
+    , bytestring
+    , inline-js
+    , inline-js-core
+    , pretty-simple
+    , relude
+    , scientific
+    , text
+    , wollok
+  default-language: Haskell2010
