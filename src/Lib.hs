@@ -12,7 +12,9 @@ import qualified Data.Scientific as Scientific
 import Data.Aeson.Encode.Pretty (encodePretty)
 import AST
 import Parser
+import Text.InterpolatedString.Perl6 (q)
 
+ejecutarWollokPonele :: IO ()
 ejecutarWollokPonele = do
   putStrLn "#######################################################################################"
   content <- BS.readFile "main.wk"

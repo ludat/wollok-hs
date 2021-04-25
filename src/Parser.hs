@@ -6,6 +6,7 @@ import GHC.Generics
 import Data.Aeson.Encode.Pretty
 import qualified Data.ByteString.Lazy.Char8 as LBS
 import AST
+import Paths_wollok
 
 data WollokParsingException
   = WollokParsingException
@@ -17,16 +18,17 @@ data WollokParsingException
 
 parsearWollok :: String -> LBS.ByteString -> IO (Either WollokParsingException WollokAST)
 parsearWollok fileName fileContent = do
+  wollokTsPath <- getDataFileName "wollok-ts/dist/index.js"
+
   let
       encodedFilename = EncodedString $ LBS.pack fileName
       encodedContent = EncodedString $ fileContent
+      encodedWollokTsPath = EncodedString $ LBS.pack wollokTsPath
 
   EncodedJSON resultado <- withSession defaultConfig $ \s -> eval @EncodedJSON s
     [js|
         try {
-          const currentDirectory = process.cwd();
-          const wollokTsRoot = `${currentDirectory}/wollok-ts`
-          const wollokTs = require(`${wollokTsRoot}/dist/index.js`);
+          const wollokTs = require($encodedWollokTsPath);
 
           return wollokTs.parse.File($encodedFilename).tryParse($encodedContent);
         } catch (e) {

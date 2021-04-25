@@ -10,6 +10,10 @@ extra-source-files:
 - README.md
 - ChangeLog.md
 
+data-files:
+- wollok-ts/**/*.js
+- wollok-ts/**/package.json
+
 # Metadata used when publishing your package
 # synopsis: Short description of your package
 # category: Web
@@ -30,6 +34,8 @@ dependencies:
 - inline-js-core
 - relude
 - base-noprelude >= 4.7 && < 5
+- template-haskell
+- interpolatedstring-perl6
 
 default-extensions:
 - QuasiQuotes
