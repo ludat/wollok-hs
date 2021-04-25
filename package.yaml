@@ -10,9 +10,9 @@ extra-source-files:
 - README.md
 - ChangeLog.md
 
-data-files:
-- wollok-ts/**/*.js
-- wollok-ts/**/package.json
+# data-files:
+# - wollok-ts/**/*.js
+# - wollok-ts/**/package.json
 
 # Metadata used when publishing your package
 # synopsis: Short description of your package
@@ -32,15 +32,19 @@ dependencies:
 - pretty-simple
 - inline-js
 - inline-js-core
-- relude
-- base-noprelude >= 4.7 && < 5
+- base >= 4.7 && < 5
 - template-haskell
 - interpolatedstring-perl6
+- array
+
+build-tools:
+- happy
+- alex
+- BNFC
 
 default-extensions:
 - QuasiQuotes
 - LambdaCase
-- StrictData
 - OverloadedStrings
 - DeriveAnyClass
 - DeriveGeneric

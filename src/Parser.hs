@@ -49,4 +49,4 @@ parsearWollok fileName fileContent = do
       case eitherDecode' @WollokAST $ resultado of
         Right bs -> return $ Right bs
         Left e -> do
-          error $ toText e
+          error $ e
