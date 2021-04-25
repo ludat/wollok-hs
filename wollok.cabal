@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 499759369cccc3183f9ceb49a43adb4c589987432bba3dbf51f5433f9117c889
+-- hash: ae0678a30a7a2226d88519461c261e6bffb3bd8f89bb5e6bacbf45752d752c1f
 
 name:           wollok
 version:        0.1.0.0
@@ -93,13 +93,14 @@ executable wollok-exe
 
 test-suite wollok-test
   type: exitcode-stdio-1.0
-  main-is: Spec.hs
+  main-is: WollokSpecMain.hs
   other-modules:
+      ParserSpec
       Paths_wollok
   hs-source-dirs:
       test
   default-extensions: QuasiQuotes LambdaCase OverloadedStrings DeriveAnyClass DeriveGeneric TypeApplications RecordWildCards DerivingStrategies DerivingVia
-  ghc-options: -threaded -rtsopts -with-rtsopts=-N
+  ghc-options: -threaded -rtsopts -with-rtsopts=-N -main-is WollokSpecMain
   build-tools:
       alex
     , happy
@@ -111,6 +112,7 @@ test-suite wollok-test
     , array
     , base >=4.7 && <5
     , bytestring
+    , hspec
     , inline-js
     , inline-js-core
     , interpolatedstring-perl6

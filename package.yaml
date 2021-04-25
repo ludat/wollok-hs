@@ -69,11 +69,12 @@ executables:
 
 tests:
   wollok-test:
-    main: Spec.hs
+    main: WollokSpecMain
     source-dirs: test
     ghc-options:
     - -threaded
     - -rtsopts
     - -with-rtsopts=-N
     dependencies:
+    - hspec
     - wollok
