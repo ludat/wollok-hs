@@ -10,11 +10,22 @@ type Result = Err String
 failure :: Show a => a -> Result
 failure x = Left $ "Undefined case: " ++ show x
 
-transExp :: Parser.AbsGrammar.Exp -> Result
-transExp x = case x of
-  Parser.AbsGrammar.EAdd exp1 exp2 -> failure x
-  Parser.AbsGrammar.ESub exp1 exp2 -> failure x
-  Parser.AbsGrammar.EMul exp1 exp2 -> failure x
-  Parser.AbsGrammar.EDiv exp1 exp2 -> failure x
-  Parser.AbsGrammar.EInt integer -> failure x
+transIdent :: Parser.AbsGrammar.Ident -> Result
+transIdent x = case x of
+  Parser.AbsGrammar.Ident string -> failure x
+transWFile :: Parser.AbsGrammar.WFile -> Result
+transWFile x = case x of
+  Parser.AbsGrammar.WFile imports wlibraryelements wprogram -> failure x
+transImport :: Parser.AbsGrammar.Import -> Result
+transImport x = case x of
+  Parser.AbsGrammar.Import -> failure x
+transWLibraryElement :: Parser.AbsGrammar.WLibraryElement -> Result
+transWLibraryElement x = case x of
+  Parser.AbsGrammar.WLibraryElement -> failure x
+transWProgram :: Parser.AbsGrammar.WProgram -> Result
+transWProgram x = case x of
+  Parser.AbsGrammar.WProgram ident wexpressions -> failure x
+transWExpression :: Parser.AbsGrammar.WExpression -> Result
+transWExpression x = case x of
+  Parser.AbsGrammar.WNumberLiteral integer -> failure x
 

@@ -21,34 +21,76 @@ type HappyAny = Happy_GHC_Exts.Any
 #else
 type HappyAny = forall a . a
 #endif
-newtype HappyWrap6 = HappyWrap6 (Integer)
-happyIn6 :: (Integer) -> (HappyAbsSyn )
-happyIn6 x = Happy_GHC_Exts.unsafeCoerce# (HappyWrap6 x)
-{-# INLINE happyIn6 #-}
-happyOut6 :: (HappyAbsSyn ) -> HappyWrap6
-happyOut6 x = Happy_GHC_Exts.unsafeCoerce# x
-{-# INLINE happyOut6 #-}
-newtype HappyWrap7 = HappyWrap7 (Parser.AbsGrammar.Exp)
-happyIn7 :: (Parser.AbsGrammar.Exp) -> (HappyAbsSyn )
-happyIn7 x = Happy_GHC_Exts.unsafeCoerce# (HappyWrap7 x)
-{-# INLINE happyIn7 #-}
-happyOut7 :: (HappyAbsSyn ) -> HappyWrap7
-happyOut7 x = Happy_GHC_Exts.unsafeCoerce# x
-{-# INLINE happyOut7 #-}
-newtype HappyWrap8 = HappyWrap8 (Parser.AbsGrammar.Exp)
-happyIn8 :: (Parser.AbsGrammar.Exp) -> (HappyAbsSyn )
-happyIn8 x = Happy_GHC_Exts.unsafeCoerce# (HappyWrap8 x)
-{-# INLINE happyIn8 #-}
-happyOut8 :: (HappyAbsSyn ) -> HappyWrap8
-happyOut8 x = Happy_GHC_Exts.unsafeCoerce# x
-{-# INLINE happyOut8 #-}
-newtype HappyWrap9 = HappyWrap9 (Parser.AbsGrammar.Exp)
-happyIn9 :: (Parser.AbsGrammar.Exp) -> (HappyAbsSyn )
-happyIn9 x = Happy_GHC_Exts.unsafeCoerce# (HappyWrap9 x)
-{-# INLINE happyIn9 #-}
-happyOut9 :: (HappyAbsSyn ) -> HappyWrap9
-happyOut9 x = Happy_GHC_Exts.unsafeCoerce# x
-{-# INLINE happyOut9 #-}
+newtype HappyWrap11 = HappyWrap11 (Parser.AbsGrammar.Ident)
+happyIn11 :: (Parser.AbsGrammar.Ident) -> (HappyAbsSyn )
+happyIn11 x = Happy_GHC_Exts.unsafeCoerce# (HappyWrap11 x)
+{-# INLINE happyIn11 #-}
+happyOut11 :: (HappyAbsSyn ) -> HappyWrap11
+happyOut11 x = Happy_GHC_Exts.unsafeCoerce# x
+{-# INLINE happyOut11 #-}
+newtype HappyWrap12 = HappyWrap12 (Integer)
+happyIn12 :: (Integer) -> (HappyAbsSyn )
+happyIn12 x = Happy_GHC_Exts.unsafeCoerce# (HappyWrap12 x)
+{-# INLINE happyIn12 #-}
+happyOut12 :: (HappyAbsSyn ) -> HappyWrap12
+happyOut12 x = Happy_GHC_Exts.unsafeCoerce# x
+{-# INLINE happyOut12 #-}
+newtype HappyWrap13 = HappyWrap13 (Parser.AbsGrammar.WFile)
+happyIn13 :: (Parser.AbsGrammar.WFile) -> (HappyAbsSyn )
+happyIn13 x = Happy_GHC_Exts.unsafeCoerce# (HappyWrap13 x)
+{-# INLINE happyIn13 #-}
+happyOut13 :: (HappyAbsSyn ) -> HappyWrap13
+happyOut13 x = Happy_GHC_Exts.unsafeCoerce# x
+{-# INLINE happyOut13 #-}
+newtype HappyWrap14 = HappyWrap14 ([Parser.AbsGrammar.Import])
+happyIn14 :: ([Parser.AbsGrammar.Import]) -> (HappyAbsSyn )
+happyIn14 x = Happy_GHC_Exts.unsafeCoerce# (HappyWrap14 x)
+{-# INLINE happyIn14 #-}
+happyOut14 :: (HappyAbsSyn ) -> HappyWrap14
+happyOut14 x = Happy_GHC_Exts.unsafeCoerce# x
+{-# INLINE happyOut14 #-}
+newtype HappyWrap15 = HappyWrap15 ([Parser.AbsGrammar.WLibraryElement])
+happyIn15 :: ([Parser.AbsGrammar.WLibraryElement]) -> (HappyAbsSyn )
+happyIn15 x = Happy_GHC_Exts.unsafeCoerce# (HappyWrap15 x)
+{-# INLINE happyIn15 #-}
+happyOut15 :: (HappyAbsSyn ) -> HappyWrap15
+happyOut15 x = Happy_GHC_Exts.unsafeCoerce# x
+{-# INLINE happyOut15 #-}
+newtype HappyWrap16 = HappyWrap16 (Parser.AbsGrammar.Import)
+happyIn16 :: (Parser.AbsGrammar.Import) -> (HappyAbsSyn )
+happyIn16 x = Happy_GHC_Exts.unsafeCoerce# (HappyWrap16 x)
+{-# INLINE happyIn16 #-}
+happyOut16 :: (HappyAbsSyn ) -> HappyWrap16
+happyOut16 x = Happy_GHC_Exts.unsafeCoerce# x
+{-# INLINE happyOut16 #-}
+newtype HappyWrap17 = HappyWrap17 (Parser.AbsGrammar.WLibraryElement)
+happyIn17 :: (Parser.AbsGrammar.WLibraryElement) -> (HappyAbsSyn )
+happyIn17 x = Happy_GHC_Exts.unsafeCoerce# (HappyWrap17 x)
+{-# INLINE happyIn17 #-}
+happyOut17 :: (HappyAbsSyn ) -> HappyWrap17
+happyOut17 x = Happy_GHC_Exts.unsafeCoerce# x
+{-# INLINE happyOut17 #-}
+newtype HappyWrap18 = HappyWrap18 (Parser.AbsGrammar.WProgram)
+happyIn18 :: (Parser.AbsGrammar.WProgram) -> (HappyAbsSyn )
+happyIn18 x = Happy_GHC_Exts.unsafeCoerce# (HappyWrap18 x)
+{-# INLINE happyIn18 #-}
+happyOut18 :: (HappyAbsSyn ) -> HappyWrap18
+happyOut18 x = Happy_GHC_Exts.unsafeCoerce# x
+{-# INLINE happyOut18 #-}
+newtype HappyWrap19 = HappyWrap19 ([Parser.AbsGrammar.WExpression])
+happyIn19 :: ([Parser.AbsGrammar.WExpression]) -> (HappyAbsSyn )
+happyIn19 x = Happy_GHC_Exts.unsafeCoerce# (HappyWrap19 x)
+{-# INLINE happyIn19 #-}
+happyOut19 :: (HappyAbsSyn ) -> HappyWrap19
+happyOut19 x = Happy_GHC_Exts.unsafeCoerce# x
+{-# INLINE happyOut19 #-}
+newtype HappyWrap20 = HappyWrap20 (Parser.AbsGrammar.WExpression)
+happyIn20 :: (Parser.AbsGrammar.WExpression) -> (HappyAbsSyn )
+happyIn20 x = Happy_GHC_Exts.unsafeCoerce# (HappyWrap20 x)
+{-# INLINE happyIn20 #-}
+happyOut20 :: (HappyAbsSyn ) -> HappyWrap20
+happyOut20 x = Happy_GHC_Exts.unsafeCoerce# x
+{-# INLINE happyOut20 #-}
 happyInTok :: (Token) -> (HappyAbsSyn )
 happyInTok x = Happy_GHC_Exts.unsafeCoerce# x
 {-# INLINE happyInTok #-}
@@ -58,133 +100,163 @@ happyOutTok x = Happy_GHC_Exts.unsafeCoerce# x
 
 
 happyExpList :: HappyAddr
-happyExpList = HappyA# "\x00\x82\x00\x04\x01\x08\x02\x00\x04\x00\x00\x00\x00\x00\x00\x00\x41\x00\x48\x00\x00\x00\xc0\x00\x40\x02\x20\x08\x40\x10\x80\x20\x00\x41\x00\x34\x00\x00\x00\x20\x01\x40\x02\x00\x00\x00\x00\x00\x00\x00"#
+happyExpList = HappyA# "\x00\x00\x40\x00\x00\x00\x10\x00\x00\x00\x08\x00\x00\x00\x01\x00\x00\x80\x00\x00\x00\x40\x00\x00\x00\x00\x01\x00\x00\x40\x00\x00\x00\x08\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x01\x00\x00\x00\x00\x00\x00\x08\x00\x00\x00\x00\x00\x00\x01\x00\x00\x00\x00\x00\x00\x10\x00\x00\x00\x00\x00\x00\x00\x08\x00\x00\x00\x00\x00\x00\x40\x00\x00\x00\x00\x00\x00\x00\x08\x00\x00\x00\x04\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x02\x00\x00\x80\x00\x00\x00\x00\x02\x00\x00\x00\x00\x00\x00\x00\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x40\x00\x00\x00\x00\x00\x00"#
 
 {-# NOINLINE happyExpListPerState #-}
 happyExpListPerState st =
     token_strs_expected
-  where token_strs = ["error","%dummy","%start_pExp","%start_pExp1","%start_pExp2","Integer","Exp","Exp1","Exp2","'('","')'","'*'","'+'","'-'","'/'","L_integ","%eof"]
-        bit_start = st * 17
-        bit_end = (st + 1) * 17
+  where token_strs = ["error","%dummy","%start_pWFile","%start_pListImport","%start_pListWLibraryElement","%start_pImport","%start_pWLibraryElement","%start_pWProgram","%start_pListWExpression","%start_pWExpression","Ident","Integer","WFile","ListImport","ListWLibraryElement","Import","WLibraryElement","WProgram","ListWExpression","WExpression","'-'","'TODO'","'import'","'library'","'program'","'{'","'}'","L_Ident","L_integ","%eof"]
+        bit_start = st * 30
+        bit_end = (st + 1) * 30
         read_bit = readArrayBit happyExpList
         bits = map read_bit [bit_start..bit_end - 1]
-        bits_indexed = zip bits [0..16]
+        bits_indexed = zip bits [0..29]
         token_strs_expected = concatMap f bits_indexed
         f (False, _) = []
         f (True, nr) = [token_strs !! nr]
 
 happyActOffsets :: HappyAddr
-happyActOffsets = HappyA# "\x01\x00\x01\x00\x01\x00\xfc\xff\x00\x00\x00\x00\xfd\xff\x01\x00\xfe\xff\x00\x00\x05\x00\x20\x00\x01\x00\x01\x00\x01\x00\x01\x00\x14\x00\x00\x00\x20\x00\x20\x00\x00\x00\x00\x00\x00\x00"#
+happyActOffsets = HappyA# "\x02\x00\x02\x00\x04\x00\x0f\x00\x18\x00\x14\x00\x16\x00\x16\x00\x19\x00\x00\x00\x00\x00\x1a\x00\x00\x00\x1a\x00\x1c\x00\x1d\x00\x1b\x00\x1e\x00\x1f\x00\x20\x00\x21\x00\x22\x00\x25\x00\x23\x00\x28\x00\x24\x00\x2b\x00\x2c\x00\x00\x00\x00\x00\x2e\x00\x30\x00\x2d\x00\x00\x00\x2f\x00\x00\x00\x00\x00\x00\x00\x32\x00\x00\x00\x00\x00"#
 
 happyGotoOffsets :: HappyAddr
-happyGotoOffsets = HappyA# "\x0e\x00\x1a\x00\x27\x00\x00\x00\x00\x00\x00\x00\x00\x00\x12\x00\x00\x00\x00\x00\x00\x00\x00\x00\x28\x00\x29\x00\x1e\x00\x22\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"#
+happyGotoOffsets = HappyA# "\x0e\x00\xfe\xff\x10\x00\x31\x00\x34\x00\x35\x00\x01\x00\x06\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x03\x00\x00\x00\x26\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x11\x00\x00\x00\x15\x00\x00\x00\x17\x00\x36\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x05\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"#
 
 happyAdjustOffset :: Happy_GHC_Exts.Int# -> Happy_GHC_Exts.Int#
 happyAdjustOffset off = off
 
 happyDefActions :: HappyAddr
-happyDefActions = HappyA# "\x00\x00\x00\x00\x00\x00\x00\x00\xfc\xff\xf5\xff\x00\x00\x00\x00\x00\x00\xf6\xff\x00\x00\xf9\xff\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\xf4\xff\xfa\xff\xfb\xff\xf7\xff\xf8\xff"#
+happyDefActions = HappyA# "\xf4\xff\xf4\xff\xf2\xff\x00\x00\x00\x00\x00\x00\xed\xff\x00\x00\x00\x00\xf7\xff\xeb\xff\x00\x00\xf6\xff\x00\x00\xed\xff\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\xf2\xff\x00\x00\xf4\xff\x00\x00\xf2\xff\x00\x00\xf3\xff\xf1\xff\x00\x00\x00\x00\x00\x00\xec\xff\xed\xff\xef\xff\xf0\xff\xf5\xff\x00\x00\xee\xff"#
 
 happyCheck :: HappyAddr
-happyCheck = HappyA# "\xff\xff\x03\x00\x01\x00\x07\x00\x06\x00\x08\x00\x08\x00\xff\xff\x07\x00\x04\x00\x05\x00\xff\xff\xff\xff\x08\x00\x00\x00\x01\x00\x02\x00\x03\x00\x00\x00\x01\x00\x02\x00\x03\x00\x02\x00\xff\xff\x04\x00\x05\x00\x00\x00\xff\xff\x02\x00\x03\x00\x00\x00\xff\xff\x02\x00\x03\x00\x00\x00\x03\x00\x02\x00\x03\x00\x06\x00\x00\x00\x00\x00\x00\x00\x03\x00\x03\x00\x03\x00\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff"#
+happyCheck = HappyA# "\xff\xff\x03\x00\x01\x00\x05\x00\x01\x00\x03\x00\x01\x00\x01\x00\x04\x00\x08\x00\x09\x00\x08\x00\x09\x00\x08\x00\x09\x00\x09\x00\x02\x00\x03\x00\x03\x00\x05\x00\x04\x00\x04\x00\x06\x00\x06\x00\x03\x00\x05\x00\x05\x00\x04\x00\x04\x00\x06\x00\xff\xff\x09\x00\x01\x00\x08\x00\x01\x00\x08\x00\x0a\x00\x09\x00\x00\x00\x0a\x00\x0a\x00\x04\x00\x0a\x00\x03\x00\x0a\x00\x0a\x00\x0a\x00\x04\x00\x02\x00\x05\x00\x02\x00\x06\x00\xff\xff\xff\xff\x05\x00\xff\xff\x09\x00\x07\x00\x06\x00\xff\xff\x07\x00\x07\x00\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff"#
 
 happyTable :: HappyAddr
-happyTable = HappyA# "\x00\x00\x0d\x00\x08\x00\x05\x00\x0e\x00\xff\xff\xff\xff\x00\x00\x05\x00\x0f\x00\x10\x00\x00\x00\x00\x00\xff\xff\x05\x00\x0a\x00\x0b\x00\x09\x00\x05\x00\x10\x00\x0b\x00\x09\x00\x12\x00\x00\x00\x0f\x00\x10\x00\x05\x00\x00\x00\x08\x00\x09\x00\x05\x00\x00\x00\x13\x00\x09\x00\x05\x00\x0d\x00\x12\x00\x09\x00\x0e\x00\x05\x00\x05\x00\x05\x00\x06\x00\x15\x00\x14\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"#
+happyTable = HappyA# "\x00\x00\x17\x00\x0a\x00\x18\x00\x0a\x00\x15\x00\x0a\x00\x0a\x00\x13\x00\x0d\x00\x0e\x00\x21\x00\x0e\x00\x26\x00\x0e\x00\x0b\x00\x19\x00\x1a\x00\x15\x00\x18\x00\x15\x00\x1d\x00\x16\x00\x16\x00\x1c\x00\x11\x00\x18\x00\x1b\x00\x13\x00\x16\x00\x00\x00\x0d\x00\x20\x00\x0a\x00\x1f\x00\x0a\x00\xff\xff\x0d\x00\x20\x00\xff\xff\xff\xff\x13\x00\xff\xff\x15\x00\xff\xff\xff\xff\xff\xff\x13\x00\x25\x00\x11\x00\x24\x00\x23\x00\x00\x00\x00\x00\x13\x00\x00\x00\x0d\x00\x28\x00\x11\x00\x00\x00\x0f\x00\x25\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"#
 
-happyReduceArr = Happy_Data_Array.array (3, 11) [
-	(3 , happyReduce_3),
-	(4 , happyReduce_4),
-	(5 , happyReduce_5),
-	(6 , happyReduce_6),
-	(7 , happyReduce_7),
+happyReduceArr = Happy_Data_Array.array (8, 20) [
 	(8 , happyReduce_8),
 	(9 , happyReduce_9),
 	(10 , happyReduce_10),
-	(11 , happyReduce_11)
+	(11 , happyReduce_11),
+	(12 , happyReduce_12),
+	(13 , happyReduce_13),
+	(14 , happyReduce_14),
+	(15 , happyReduce_15),
+	(16 , happyReduce_16),
+	(17 , happyReduce_17),
+	(18 , happyReduce_18),
+	(19 , happyReduce_19),
+	(20 , happyReduce_20)
 	]
 
-happy_n_terms = 9 :: Int
-happy_n_nonterms = 4 :: Int
+happy_n_terms = 11 :: Int
+happy_n_nonterms = 10 :: Int
 
-happyReduce_3 = happySpecReduce_1  0# happyReduction_3
-happyReduction_3 happy_x_1
+happyReduce_8 = happySpecReduce_1  0# happyReduction_8
+happyReduction_8 happy_x_1
+	 =  case happyOutTok happy_x_1 of { (PT _ (TV happy_var_1)) -> 
+	happyIn11
+		 (Parser.AbsGrammar.Ident happy_var_1
+	)}
+
+happyReduce_9 = happySpecReduce_1  1# happyReduction_9
+happyReduction_9 happy_x_1
 	 =  case happyOutTok happy_x_1 of { (PT _ (TI happy_var_1)) -> 
-	happyIn6
+	happyIn12
 		 ((read (happy_var_1)) :: Integer
 	)}
 
-happyReduce_4 = happySpecReduce_3  1# happyReduction_4
-happyReduction_4 happy_x_3
+happyReduce_10 = happySpecReduce_3  2# happyReduction_10
+happyReduction_10 happy_x_3
 	happy_x_2
 	happy_x_1
-	 =  case happyOut7 happy_x_1 of { (HappyWrap7 happy_var_1) -> 
-	case happyOut8 happy_x_3 of { (HappyWrap8 happy_var_3) -> 
-	happyIn7
-		 (Parser.AbsGrammar.EAdd happy_var_1 happy_var_3
+	 =  case happyOut14 happy_x_1 of { (HappyWrap14 happy_var_1) -> 
+	case happyOut15 happy_x_2 of { (HappyWrap15 happy_var_2) -> 
+	case happyOut18 happy_x_3 of { (HappyWrap18 happy_var_3) -> 
+	happyIn13
+		 (Parser.AbsGrammar.WFile happy_var_1 happy_var_2 happy_var_3
+	)}}}
+
+happyReduce_11 = happySpecReduce_0  3# happyReduction_11
+happyReduction_11  =  happyIn14
+		 ([]
+	)
+
+happyReduce_12 = happySpecReduce_2  3# happyReduction_12
+happyReduction_12 happy_x_2
+	happy_x_1
+	 =  case happyOut16 happy_x_1 of { (HappyWrap16 happy_var_1) -> 
+	case happyOut14 happy_x_2 of { (HappyWrap14 happy_var_2) -> 
+	happyIn14
+		 ((:) happy_var_1 happy_var_2
 	)}}
 
-happyReduce_5 = happySpecReduce_3  1# happyReduction_5
-happyReduction_5 happy_x_3
-	happy_x_2
+happyReduce_13 = happySpecReduce_0  4# happyReduction_13
+happyReduction_13  =  happyIn15
+		 ([]
+	)
+
+happyReduce_14 = happySpecReduce_2  4# happyReduction_14
+happyReduction_14 happy_x_2
 	happy_x_1
-	 =  case happyOut7 happy_x_1 of { (HappyWrap7 happy_var_1) -> 
-	case happyOut8 happy_x_3 of { (HappyWrap8 happy_var_3) -> 
-	happyIn7
-		 (Parser.AbsGrammar.ESub happy_var_1 happy_var_3
+	 =  case happyOut17 happy_x_1 of { (HappyWrap17 happy_var_1) -> 
+	case happyOut15 happy_x_2 of { (HappyWrap15 happy_var_2) -> 
+	happyIn15
+		 ((:) happy_var_1 happy_var_2
 	)}}
 
-happyReduce_6 = happySpecReduce_1  1# happyReduction_6
-happyReduction_6 happy_x_1
-	 =  case happyOut8 happy_x_1 of { (HappyWrap8 happy_var_1) -> 
-	happyIn7
-		 (happy_var_1
-	)}
-
-happyReduce_7 = happySpecReduce_3  2# happyReduction_7
-happyReduction_7 happy_x_3
+happyReduce_15 = happySpecReduce_3  5# happyReduction_15
+happyReduction_15 happy_x_3
 	happy_x_2
 	happy_x_1
-	 =  case happyOut8 happy_x_1 of { (HappyWrap8 happy_var_1) -> 
-	case happyOut9 happy_x_3 of { (HappyWrap9 happy_var_3) -> 
-	happyIn8
-		 (Parser.AbsGrammar.EMul happy_var_1 happy_var_3
+	 =  happyIn16
+		 (Parser.AbsGrammar.Import
+	)
+
+happyReduce_16 = happySpecReduce_3  6# happyReduction_16
+happyReduction_16 happy_x_3
+	happy_x_2
+	happy_x_1
+	 =  happyIn17
+		 (Parser.AbsGrammar.WLibraryElement
+	)
+
+happyReduce_17 = happyReduce 5# 7# happyReduction_17
+happyReduction_17 (happy_x_5 `HappyStk`
+	happy_x_4 `HappyStk`
+	happy_x_3 `HappyStk`
+	happy_x_2 `HappyStk`
+	happy_x_1 `HappyStk`
+	happyRest)
+	 = case happyOut11 happy_x_2 of { (HappyWrap11 happy_var_2) -> 
+	case happyOut19 happy_x_4 of { (HappyWrap19 happy_var_4) -> 
+	happyIn18
+		 (Parser.AbsGrammar.WProgram happy_var_2 happy_var_4
+	) `HappyStk` happyRest}}
+
+happyReduce_18 = happySpecReduce_0  8# happyReduction_18
+happyReduction_18  =  happyIn19
+		 ([]
+	)
+
+happyReduce_19 = happySpecReduce_2  8# happyReduction_19
+happyReduction_19 happy_x_2
+	happy_x_1
+	 =  case happyOut20 happy_x_1 of { (HappyWrap20 happy_var_1) -> 
+	case happyOut19 happy_x_2 of { (HappyWrap19 happy_var_2) -> 
+	happyIn19
+		 ((:) happy_var_1 happy_var_2
 	)}}
 
-happyReduce_8 = happySpecReduce_3  2# happyReduction_8
-happyReduction_8 happy_x_3
-	happy_x_2
-	happy_x_1
-	 =  case happyOut8 happy_x_1 of { (HappyWrap8 happy_var_1) -> 
-	case happyOut9 happy_x_3 of { (HappyWrap9 happy_var_3) -> 
-	happyIn8
-		 (Parser.AbsGrammar.EDiv happy_var_1 happy_var_3
-	)}}
-
-happyReduce_9 = happySpecReduce_1  2# happyReduction_9
-happyReduction_9 happy_x_1
-	 =  case happyOut9 happy_x_1 of { (HappyWrap9 happy_var_1) -> 
-	happyIn8
-		 (happy_var_1
-	)}
-
-happyReduce_10 = happySpecReduce_1  3# happyReduction_10
-happyReduction_10 happy_x_1
-	 =  case happyOut6 happy_x_1 of { (HappyWrap6 happy_var_1) -> 
-	happyIn9
-		 (Parser.AbsGrammar.EInt happy_var_1
-	)}
-
-happyReduce_11 = happySpecReduce_3  3# happyReduction_11
-happyReduction_11 happy_x_3
-	happy_x_2
-	happy_x_1
-	 =  case happyOut7 happy_x_2 of { (HappyWrap7 happy_var_2) -> 
-	happyIn9
-		 (happy_var_2
+happyReduce_20 = happySpecReduce_1  9# happyReduction_20
+happyReduction_20 happy_x_1
+	 =  case happyOut12 happy_x_1 of { (HappyWrap12 happy_var_1) -> 
+	happyIn20
+		 (Parser.AbsGrammar.WNumberLiteral happy_var_1
 	)}
 
 happyNewToken action sts stk [] =
-	happyDoAction 8# notHappyAtAll action sts stk []
+	happyDoAction 10# notHappyAtAll action sts stk []
 
 happyNewToken action sts stk (tk:tks) =
 	let cont i = happyDoAction i tk action sts stk tks in
@@ -195,11 +267,13 @@ happyNewToken action sts stk (tk:tks) =
 	PT _ (TS _ 4) -> cont 4#;
 	PT _ (TS _ 5) -> cont 5#;
 	PT _ (TS _ 6) -> cont 6#;
-	PT _ (TI happy_dollar_dollar) -> cont 7#;
+	PT _ (TS _ 7) -> cont 7#;
+	PT _ (TV happy_dollar_dollar) -> cont 8#;
+	PT _ (TI happy_dollar_dollar) -> cont 9#;
 	_ -> happyError' ((tk:tks), [])
 	}
 
-happyError_ explist 8# tk tks = happyError' (tks, explist)
+happyError_ explist 10# tk tks = happyError' (tks, explist)
 happyError_ explist _ tk tks = happyError' ((tk:tks), explist)
 
 happyThen :: () => Either String a -> (a -> Either String b) -> Either String b
@@ -211,14 +285,29 @@ happyReturn1 :: () => a -> b -> Either String a
 happyReturn1 = \a tks -> (return) a
 happyError' :: () => ([(Token)], [String]) -> Either String a
 happyError' = (\(tokens, _) -> happyError tokens)
-pExp tks = happySomeParser where
- happySomeParser = happyThen (happyParse 0# tks) (\x -> happyReturn (let {(HappyWrap7 x') = happyOut7 x} in x'))
+pWFile tks = happySomeParser where
+ happySomeParser = happyThen (happyParse 0# tks) (\x -> happyReturn (let {(HappyWrap13 x') = happyOut13 x} in x'))
 
-pExp1 tks = happySomeParser where
- happySomeParser = happyThen (happyParse 1# tks) (\x -> happyReturn (let {(HappyWrap8 x') = happyOut8 x} in x'))
+pListImport tks = happySomeParser where
+ happySomeParser = happyThen (happyParse 1# tks) (\x -> happyReturn (let {(HappyWrap14 x') = happyOut14 x} in x'))
 
-pExp2 tks = happySomeParser where
- happySomeParser = happyThen (happyParse 2# tks) (\x -> happyReturn (let {(HappyWrap9 x') = happyOut9 x} in x'))
+pListWLibraryElement tks = happySomeParser where
+ happySomeParser = happyThen (happyParse 2# tks) (\x -> happyReturn (let {(HappyWrap15 x') = happyOut15 x} in x'))
+
+pImport tks = happySomeParser where
+ happySomeParser = happyThen (happyParse 3# tks) (\x -> happyReturn (let {(HappyWrap16 x') = happyOut16 x} in x'))
+
+pWLibraryElement tks = happySomeParser where
+ happySomeParser = happyThen (happyParse 4# tks) (\x -> happyReturn (let {(HappyWrap17 x') = happyOut17 x} in x'))
+
+pWProgram tks = happySomeParser where
+ happySomeParser = happyThen (happyParse 5# tks) (\x -> happyReturn (let {(HappyWrap18 x') = happyOut18 x} in x'))
+
+pListWExpression tks = happySomeParser where
+ happySomeParser = happyThen (happyParse 6# tks) (\x -> happyReturn (let {(HappyWrap19 x') = happyOut19 x} in x'))
+
+pWExpression tks = happySomeParser where
+ happySomeParser = happyThen (happyParse 7# tks) (\x -> happyReturn (let {(HappyWrap20 x') = happyOut20 x} in x'))
 
 happySeq = happyDontSeq
 

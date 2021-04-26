@@ -1,3 +1,4 @@
+{-# LANGUAGE DeriveAnyClass #-}
 module Parser where
 
 import Language.JavaScript.Inline
@@ -7,6 +8,8 @@ import Data.Aeson.Encode.Pretty
 import qualified Data.ByteString.Lazy.Char8 as LBS
 import AST
 import Paths_wollok
+import Parser.ParGrammar (myLexer, pWFile)
+import qualified Parser.AbsGrammar
 
 data WollokParsingException
   = WollokParsingException
@@ -50,3 +53,6 @@ parsearWollok fileName fileContent = do
         Right bs -> return $ Right bs
         Left e -> do
           error $ e
+
+parsearWollok' :: String -> Either String Parser.AbsGrammar.WFile
+parsearWollok' = pWFile . myLexer

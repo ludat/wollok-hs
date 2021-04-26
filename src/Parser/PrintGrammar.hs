@@ -97,11 +97,41 @@ instance Print Integer where
 instance Print Double where
   prt _ x = doc (shows x)
 
-instance Print Parser.AbsGrammar.Exp where
+instance Print Parser.AbsGrammar.Ident where
+  prt _ (Parser.AbsGrammar.Ident i) = doc $ showString $ i
+
+instance Print Parser.AbsGrammar.WFile where
   prt i e = case e of
-    Parser.AbsGrammar.EAdd exp1 exp2 -> prPrec i 0 (concatD [prt 0 exp1, doc (showString "+"), prt 1 exp2])
-    Parser.AbsGrammar.ESub exp1 exp2 -> prPrec i 0 (concatD [prt 0 exp1, doc (showString "-"), prt 1 exp2])
-    Parser.AbsGrammar.EMul exp1 exp2 -> prPrec i 1 (concatD [prt 1 exp1, doc (showString "*"), prt 2 exp2])
-    Parser.AbsGrammar.EDiv exp1 exp2 -> prPrec i 1 (concatD [prt 1 exp1, doc (showString "/"), prt 2 exp2])
-    Parser.AbsGrammar.EInt n -> prPrec i 2 (concatD [prt 0 n])
+    Parser.AbsGrammar.WFile imports wlibraryelements wprogram -> prPrec i 0 (concatD [prt 0 imports, prt 0 wlibraryelements, prt 0 wprogram])
+
+instance Print [Parser.AbsGrammar.Import] where
+  prt = prtList
+
+instance Print [Parser.AbsGrammar.WLibraryElement] where
+  prt = prtList
+
+instance Print Parser.AbsGrammar.Import where
+  prt i e = case e of
+    Parser.AbsGrammar.Import -> prPrec i 0 (concatD [doc (showString "import"), doc (showString "-"), doc (showString "TODO")])
+  prtList _ [] = concatD []
+  prtList _ (x:xs) = concatD [prt 0 x, prt 0 xs]
+
+instance Print Parser.AbsGrammar.WLibraryElement where
+  prt i e = case e of
+    Parser.AbsGrammar.WLibraryElement -> prPrec i 0 (concatD [doc (showString "library"), doc (showString "-"), doc (showString "TODO")])
+  prtList _ [] = concatD []
+  prtList _ (x:xs) = concatD [prt 0 x, prt 0 xs]
+
+instance Print Parser.AbsGrammar.WProgram where
+  prt i e = case e of
+    Parser.AbsGrammar.WProgram id wexpressions -> prPrec i 0 (concatD [doc (showString "program"), prt 0 id, doc (showString "{"), prt 0 wexpressions, doc (showString "}")])
+
+instance Print [Parser.AbsGrammar.WExpression] where
+  prt = prtList
+
+instance Print Parser.AbsGrammar.WExpression where
+  prt i e = case e of
+    Parser.AbsGrammar.WNumberLiteral n -> prPrec i 0 (concatD [prt 0 n])
+  prtList _ [] = concatD []
+  prtList _ (x:xs) = concatD [prt 0 x, prt 0 xs]
 

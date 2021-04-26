@@ -1,7 +1,11 @@
-    EAdd. Exp  ::= Exp  "+" Exp1 ;
-    ESub. Exp  ::= Exp  "-" Exp1 ;
-    EMul. Exp1 ::= Exp1 "*" Exp2 ;
-    EDiv. Exp1 ::= Exp1 "/" Exp2 ;
-    EInt. Exp2 ::= Integer ;
+WFile. WFile ::= [Import] [WLibraryElement] WProgram;
+terminator Import "";
+terminator WLibraryElement "";
 
-    coercions Exp 2 ;
+Import. Import ::= "import - TODO";
+WLibraryElement. WLibraryElement ::= "library - TODO";
+
+WProgram. WProgram ::= "program" Ident "{" [WExpression] "}" ;
+terminator WExpression "";
+
+WNumberLiteral. WExpression ::= Integer ;
