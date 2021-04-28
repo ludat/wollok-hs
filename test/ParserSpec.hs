@@ -11,7 +11,7 @@ spec :: Spec
 spec = do
   describe "wollok parser" $ do
     it "should parse wollok" $ do
-      [q|
+      [w|
         class X {
           var v1 = 2
           method m1(x, y) {
@@ -29,7 +29,7 @@ spec = do
           "un string"
           x.abs().sumarCon(1, 2)
         }
-      |] `shouldParseAs`
+      |] `shouldBe`
         (WFile []
           [ WLibraryElement $ WClassDeclaration (Ident "X") WNoSuperclass
             [ WVariableDeclaration Var (Ident "v1") (WNumberLiteral 2) ]
@@ -53,6 +53,3 @@ spec = do
             ]
           )
         )
-
-shouldParseAs :: String -> WFile -> Expectation
-shouldParseAs string expectedResult = parsearWollok' string `shouldBe` pure expectedResult
