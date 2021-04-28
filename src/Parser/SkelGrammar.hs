@@ -21,11 +21,47 @@ transImport x = case x of
   Parser.AbsGrammar.Import -> failure x
 transWLibraryElement :: Parser.AbsGrammar.WLibraryElement -> Result
 transWLibraryElement x = case x of
-  Parser.AbsGrammar.WLibraryElement -> failure x
+  Parser.AbsGrammar.WLibraryElement wclassdeclaration -> failure x
 transWProgram :: Parser.AbsGrammar.WProgram -> Result
 transWProgram x = case x of
-  Parser.AbsGrammar.WProgram ident wexpressions -> failure x
+  Parser.AbsGrammar.WProgram ident wstatements -> failure x
+transWClassDeclaration :: Parser.AbsGrammar.WClassDeclaration -> Result
+transWClassDeclaration x = case x of
+  Parser.AbsGrammar.WClassDeclaration ident wsuperclassdeclaration wvariabledeclarations wmethoddeclarations -> failure x
+transWSuperclassDeclaration :: Parser.AbsGrammar.WSuperclassDeclaration -> Result
+transWSuperclassDeclaration x = case x of
+  Parser.AbsGrammar.WSuperclass ident -> failure x
+  Parser.AbsGrammar.WNoSuperclass -> failure x
+transWMethodDeclaration :: Parser.AbsGrammar.WMethodDeclaration -> Result
+transWMethodDeclaration x = case x of
+  Parser.AbsGrammar.WMethodDeclaration ident idents nativeindicator methodbody -> failure x
+transNativeIndicator :: Parser.AbsGrammar.NativeIndicator -> Result
+transNativeIndicator x = case x of
+  Parser.AbsGrammar.Native -> failure x
+  Parser.AbsGrammar.Custom -> failure x
+transMethodBody :: Parser.AbsGrammar.MethodBody -> Result
+transMethodBody x = case x of
+  Parser.AbsGrammar.Implemented wstatements -> failure x
+  Parser.AbsGrammar.NotImplemented -> failure x
+transWStatement :: Parser.AbsGrammar.WStatement -> Result
+transWStatement x = case x of
+  Parser.AbsGrammar.TopLevelExpression wexpression -> failure x
+  Parser.AbsGrammar.VarDeclaration wvariabledeclaration -> failure x
+transWVariableDeclaration :: Parser.AbsGrammar.WVariableDeclaration -> Result
+transWVariableDeclaration x = case x of
+  Parser.AbsGrammar.WVariableDeclaration wvariabletype ident wexpression -> failure x
+transWVariableType :: Parser.AbsGrammar.WVariableType -> Result
+transWVariableType x = case x of
+  Parser.AbsGrammar.Var -> failure x
+  Parser.AbsGrammar.Const -> failure x
 transWExpression :: Parser.AbsGrammar.WExpression -> Result
 transWExpression x = case x of
+  Parser.AbsGrammar.WMessageSend wexpression ident wexpressions -> failure x
   Parser.AbsGrammar.WNumberLiteral integer -> failure x
+  Parser.AbsGrammar.WNullLiteral -> failure x
+  Parser.AbsGrammar.WLiteralTrue -> failure x
+  Parser.AbsGrammar.WLiteralFalse -> failure x
+  Parser.AbsGrammar.WSelf -> failure x
+  Parser.AbsGrammar.WStringLiteral string -> failure x
+  Parser.AbsGrammar.WVariable ident -> failure x
 

@@ -1,11 +1,53 @@
 WFile. WFile ::= [Import] [WLibraryElement] WProgram;
-terminator Import "";
-terminator WLibraryElement "";
+separator Import "";
+separator WLibraryElement "";
 
 Import. Import ::= "import - TODO";
-WLibraryElement. WLibraryElement ::= "library - TODO";
+WLibraryElement. WLibraryElement ::= WClassDeclaration;
 
-WProgram. WProgram ::= "program" Ident "{" [WExpression] "}" ;
-terminator WExpression "";
+WProgram. WProgram ::= "program" Ident "{" [WStatement] "}";
+terminator WStatement "";
 
-WNumberLiteral. WExpression ::= Integer ;
+WClassDeclaration. WClassDeclaration ::=
+    "class" Ident WSuperclassDeclaration "{"
+        [WVariableDeclaration]
+        [WMethodDeclaration]
+    "}";
+separator WVariableDeclaration "";
+separator WMethodDeclaration "";
+
+WSuperclass. WSuperclassDeclaration ::= "inherits" Ident;
+WNoSuperclass. WSuperclassDeclaration ::= ;
+
+WMethodDeclaration. WMethodDeclaration ::=
+    "method" Ident "(" [Ident] ")" NativeIndicator MethodBody;
+separator Ident ",";
+
+Native. NativeIndicator ::= "native";
+Custom. NativeIndicator ::= ;
+
+Implemented. MethodBody ::= "{" [WStatement] "}";
+NotImplemented. MethodBody ::= ;
+
+TopLevelExpression. WStatement ::= WExpression;
+VarDeclaration. WStatement ::= WVariableDeclaration;
+
+WVariableDeclaration. WVariableDeclaration ::= WVariableType Ident "=" WExpression;
+Var. WVariableType ::= "var";
+Const. WVariableType ::= "const";
+
+TopLevelExpression. WStatement ::= WExpression;
+
+WMessageSend. WExpression ::=
+    WExpression "." Ident "(" [WExpression] ")";
+separator WExpression ",";
+
+WNumberLiteral. WExpression1 ::= Integer;
+WNullLiteral. WExpression1 ::= "null";
+WLiteralTrue. WExpression1 ::= "true";
+WLiteralFalse. WExpression1 ::= "false";
+WSelf. WExpression1 ::= "self";
+WStringLiteral. WExpression1 ::= String;
+WVariable. WExpression1 ::= Ident;
+
+coercions WExpression 1 ;

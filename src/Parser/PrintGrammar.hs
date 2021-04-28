@@ -99,6 +99,9 @@ instance Print Double where
 
 instance Print Parser.AbsGrammar.Ident where
   prt _ (Parser.AbsGrammar.Ident i) = doc $ showString $ i
+  prtList _ [] = concatD []
+  prtList _ [x] = concatD [prt 0 x]
+  prtList _ (x:xs) = concatD [prt 0 x, doc (showString ","), prt 0 xs]
 
 instance Print Parser.AbsGrammar.WFile where
   prt i e = case e of
@@ -118,20 +121,83 @@ instance Print Parser.AbsGrammar.Import where
 
 instance Print Parser.AbsGrammar.WLibraryElement where
   prt i e = case e of
-    Parser.AbsGrammar.WLibraryElement -> prPrec i 0 (concatD [doc (showString "library"), doc (showString "-"), doc (showString "TODO")])
+    Parser.AbsGrammar.WLibraryElement wclassdeclaration -> prPrec i 0 (concatD [prt 0 wclassdeclaration])
   prtList _ [] = concatD []
   prtList _ (x:xs) = concatD [prt 0 x, prt 0 xs]
 
 instance Print Parser.AbsGrammar.WProgram where
   prt i e = case e of
-    Parser.AbsGrammar.WProgram id wexpressions -> prPrec i 0 (concatD [doc (showString "program"), prt 0 id, doc (showString "{"), prt 0 wexpressions, doc (showString "}")])
+    Parser.AbsGrammar.WProgram id wstatements -> prPrec i 0 (concatD [doc (showString "program"), prt 0 id, doc (showString "{"), prt 0 wstatements, doc (showString "}")])
 
-instance Print [Parser.AbsGrammar.WExpression] where
+instance Print [Parser.AbsGrammar.WStatement] where
   prt = prtList
+
+instance Print Parser.AbsGrammar.WClassDeclaration where
+  prt i e = case e of
+    Parser.AbsGrammar.WClassDeclaration id wsuperclassdeclaration wvariabledeclarations wmethoddeclarations -> prPrec i 0 (concatD [doc (showString "class"), prt 0 id, prt 0 wsuperclassdeclaration, doc (showString "{"), prt 0 wvariabledeclarations, prt 0 wmethoddeclarations, doc (showString "}")])
+
+instance Print [Parser.AbsGrammar.WVariableDeclaration] where
+  prt = prtList
+
+instance Print [Parser.AbsGrammar.WMethodDeclaration] where
+  prt = prtList
+
+instance Print Parser.AbsGrammar.WSuperclassDeclaration where
+  prt i e = case e of
+    Parser.AbsGrammar.WSuperclass id -> prPrec i 0 (concatD [doc (showString "inherits"), prt 0 id])
+    Parser.AbsGrammar.WNoSuperclass -> prPrec i 0 (concatD [])
+
+instance Print Parser.AbsGrammar.WMethodDeclaration where
+  prt i e = case e of
+    Parser.AbsGrammar.WMethodDeclaration id ids nativeindicator methodbody -> prPrec i 0 (concatD [doc (showString "method"), prt 0 id, doc (showString "("), prt 0 ids, doc (showString ")"), prt 0 nativeindicator, prt 0 methodbody])
+  prtList _ [] = concatD []
+  prtList _ (x:xs) = concatD [prt 0 x, prt 0 xs]
+
+instance Print [Parser.AbsGrammar.Ident] where
+  prt = prtList
+
+instance Print Parser.AbsGrammar.NativeIndicator where
+  prt i e = case e of
+    Parser.AbsGrammar.Native -> prPrec i 0 (concatD [doc (showString "native")])
+    Parser.AbsGrammar.Custom -> prPrec i 0 (concatD [])
+
+instance Print Parser.AbsGrammar.MethodBody where
+  prt i e = case e of
+    Parser.AbsGrammar.Implemented wstatements -> prPrec i 0 (concatD [doc (showString "{"), prt 0 wstatements, doc (showString "}")])
+    Parser.AbsGrammar.NotImplemented -> prPrec i 0 (concatD [])
+
+instance Print Parser.AbsGrammar.WStatement where
+  prt i e = case e of
+    Parser.AbsGrammar.TopLevelExpression wexpression -> prPrec i 0 (concatD [prt 0 wexpression])
+    Parser.AbsGrammar.VarDeclaration wvariabledeclaration -> prPrec i 0 (concatD [prt 0 wvariabledeclaration])
+  prtList _ [] = concatD []
+  prtList _ (x:xs) = concatD [prt 0 x, prt 0 xs]
+
+instance Print Parser.AbsGrammar.WVariableDeclaration where
+  prt i e = case e of
+    Parser.AbsGrammar.WVariableDeclaration wvariabletype id wexpression -> prPrec i 0 (concatD [prt 0 wvariabletype, prt 0 id, doc (showString "="), prt 0 wexpression])
+  prtList _ [] = concatD []
+  prtList _ (x:xs) = concatD [prt 0 x, prt 0 xs]
+
+instance Print Parser.AbsGrammar.WVariableType where
+  prt i e = case e of
+    Parser.AbsGrammar.Var -> prPrec i 0 (concatD [doc (showString "var")])
+    Parser.AbsGrammar.Const -> prPrec i 0 (concatD [doc (showString "const")])
 
 instance Print Parser.AbsGrammar.WExpression where
   prt i e = case e of
-    Parser.AbsGrammar.WNumberLiteral n -> prPrec i 0 (concatD [prt 0 n])
+    Parser.AbsGrammar.WMessageSend wexpression id wexpressions -> prPrec i 0 (concatD [prt 0 wexpression, doc (showString "."), prt 0 id, doc (showString "("), prt 0 wexpressions, doc (showString ")")])
+    Parser.AbsGrammar.WNumberLiteral n -> prPrec i 1 (concatD [prt 0 n])
+    Parser.AbsGrammar.WNullLiteral -> prPrec i 1 (concatD [doc (showString "null")])
+    Parser.AbsGrammar.WLiteralTrue -> prPrec i 1 (concatD [doc (showString "true")])
+    Parser.AbsGrammar.WLiteralFalse -> prPrec i 1 (concatD [doc (showString "false")])
+    Parser.AbsGrammar.WSelf -> prPrec i 1 (concatD [doc (showString "self")])
+    Parser.AbsGrammar.WStringLiteral str -> prPrec i 1 (concatD [prt 0 str])
+    Parser.AbsGrammar.WVariable id -> prPrec i 1 (concatD [prt 0 id])
   prtList _ [] = concatD []
-  prtList _ (x:xs) = concatD [prt 0 x, prt 0 xs]
+  prtList _ [x] = concatD [prt 0 x]
+  prtList _ (x:xs) = concatD [prt 0 x, doc (showString ","), prt 0 xs]
+
+instance Print [Parser.AbsGrammar.WExpression] where
+  prt = prtList
 

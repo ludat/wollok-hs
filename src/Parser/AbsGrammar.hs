@@ -23,12 +23,49 @@ data WFile = WFile [Import] [WLibraryElement] WProgram
 data Import = Import
   deriving (C.Eq, C.Ord, C.Show, C.Read, C.Data, C.Typeable, C.Generic)
 
-data WLibraryElement = WLibraryElement
+data WLibraryElement = WLibraryElement WClassDeclaration
   deriving (C.Eq, C.Ord, C.Show, C.Read, C.Data, C.Typeable, C.Generic)
 
-data WProgram = WProgram Ident [WExpression]
+data WProgram = WProgram Ident [WStatement]
   deriving (C.Eq, C.Ord, C.Show, C.Read, C.Data, C.Typeable, C.Generic)
 
-data WExpression = WNumberLiteral Integer
+data WClassDeclaration
+    = WClassDeclaration Ident WSuperclassDeclaration [WVariableDeclaration] [WMethodDeclaration]
+  deriving (C.Eq, C.Ord, C.Show, C.Read, C.Data, C.Typeable, C.Generic)
+
+data WSuperclassDeclaration = WSuperclass Ident | WNoSuperclass
+  deriving (C.Eq, C.Ord, C.Show, C.Read, C.Data, C.Typeable, C.Generic)
+
+data WMethodDeclaration
+    = WMethodDeclaration Ident [Ident] NativeIndicator MethodBody
+  deriving (C.Eq, C.Ord, C.Show, C.Read, C.Data, C.Typeable, C.Generic)
+
+data NativeIndicator = Native | Custom
+  deriving (C.Eq, C.Ord, C.Show, C.Read, C.Data, C.Typeable, C.Generic)
+
+data MethodBody = Implemented [WStatement] | NotImplemented
+  deriving (C.Eq, C.Ord, C.Show, C.Read, C.Data, C.Typeable, C.Generic)
+
+data WStatement
+    = TopLevelExpression WExpression
+    | VarDeclaration WVariableDeclaration
+  deriving (C.Eq, C.Ord, C.Show, C.Read, C.Data, C.Typeable, C.Generic)
+
+data WVariableDeclaration
+    = WVariableDeclaration WVariableType Ident WExpression
+  deriving (C.Eq, C.Ord, C.Show, C.Read, C.Data, C.Typeable, C.Generic)
+
+data WVariableType = Var | Const
+  deriving (C.Eq, C.Ord, C.Show, C.Read, C.Data, C.Typeable, C.Generic)
+
+data WExpression
+    = WMessageSend WExpression Ident [WExpression]
+    | WNumberLiteral Integer
+    | WNullLiteral
+    | WLiteralTrue
+    | WLiteralFalse
+    | WSelf
+    | WStringLiteral String
+    | WVariable Ident
   deriving (C.Eq, C.Ord, C.Show, C.Read, C.Data, C.Typeable, C.Generic)
 
