@@ -170,6 +170,8 @@ instance Print Parser.AbsGrammar.WStatement where
   prt i e = case e of
     Parser.AbsGrammar.TopLevelExpression wexpression -> prPrec i 0 (concatD [prt 0 wexpression])
     Parser.AbsGrammar.VarDeclaration wvariabledeclaration -> prPrec i 0 (concatD [prt 0 wvariabledeclaration])
+    Parser.AbsGrammar.WReturn wexpression -> prPrec i 0 (concatD [doc (showString "return"), prt 0 wexpression])
+    Parser.AbsGrammar.WThrow wexpression -> prPrec i 0 (concatD [doc (showString "throw"), prt 0 wexpression])
   prtList _ [] = concatD []
   prtList _ (x:xs) = concatD [prt 0 x, prt 0 xs]
 
@@ -187,6 +189,7 @@ instance Print Parser.AbsGrammar.WVariableType where
 instance Print Parser.AbsGrammar.WExpression where
   prt i e = case e of
     Parser.AbsGrammar.WMessageSend wexpression id wexpressions -> prPrec i 0 (concatD [prt 0 wexpression, doc (showString "."), prt 0 id, doc (showString "("), prt 0 wexpressions, doc (showString ")")])
+    Parser.AbsGrammar.WTry wblockorexpression wcatchs -> prPrec i 1 (concatD [doc (showString "try"), prt 0 wblockorexpression, prt 0 wcatchs])
     Parser.AbsGrammar.WNumberLiteral n -> prPrec i 1 (concatD [prt 0 n])
     Parser.AbsGrammar.WNullLiteral -> prPrec i 1 (concatD [doc (showString "null")])
     Parser.AbsGrammar.WLiteralTrue -> prPrec i 1 (concatD [doc (showString "true")])
@@ -200,4 +203,23 @@ instance Print Parser.AbsGrammar.WExpression where
 
 instance Print [Parser.AbsGrammar.WExpression] where
   prt = prtList
+
+instance Print Parser.AbsGrammar.WBlockOrExpression where
+  prt i e = case e of
+    Parser.AbsGrammar.SingleExpression wstatement -> prPrec i 0 (concatD [prt 0 wstatement])
+    Parser.AbsGrammar.Block wstatements -> prPrec i 0 (concatD [doc (showString "{"), prt 0 wstatements, doc (showString "}")])
+
+instance Print Parser.AbsGrammar.WCatch where
+  prt i e = case e of
+    Parser.AbsGrammar.WCatch id exceptiontype wblockorexpression -> prPrec i 0 (concatD [doc (showString "catch"), prt 0 id, prt 0 exceptiontype, prt 0 wblockorexpression])
+  prtList _ [] = concatD []
+  prtList _ (x:xs) = concatD [prt 0 x, prt 0 xs]
+
+instance Print [Parser.AbsGrammar.WCatch] where
+  prt = prtList
+
+instance Print Parser.AbsGrammar.ExceptionType where
+  prt i e = case e of
+    Parser.AbsGrammar.ProvidedExceptionType id -> prPrec i 0 (concatD [doc (showString ":"), prt 0 id])
+    Parser.AbsGrammar.DefaultExceptionType -> prPrec i 0 (concatD [])
 

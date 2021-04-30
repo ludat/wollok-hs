@@ -28,6 +28,10 @@ spec = do
           false
           "un string"
           x.abs().sumarCon(1, 2)
+
+          try throw 2 catch e : Exception {
+            return 3
+          }
         }
       |] `shouldBe`
         (WFile []
@@ -50,6 +54,12 @@ spec = do
                   (WMessageSend (WVariable "x") "abs" []) "sumarCon" [
                     WNumberLiteral 1, WNumberLiteral 2
                   ]
+            , TopLevelExpression $
+                WTry
+                  (SingleExpression (WThrow $ WNumberLiteral 2))
+                    [ WCatch (Ident "e") (ProvidedExceptionType (Ident "Exception"))
+                        (Block [ WReturn $ WNumberLiteral  3 ])
+                    ]
             ]
           )
         )

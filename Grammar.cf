@@ -31,16 +31,26 @@ NotImplemented. MethodBody ::= ;
 
 TopLevelExpression. WStatement ::= WExpression;
 VarDeclaration. WStatement ::= WVariableDeclaration;
+WReturn. WStatement ::= "return" WExpression;
+WThrow. WStatement ::= "throw" WExpression;
 
 WVariableDeclaration. WVariableDeclaration ::= WVariableType Ident "=" WExpression;
 Var. WVariableType ::= "var";
 Const. WVariableType ::= "const";
 
-TopLevelExpression. WStatement ::= WExpression;
-
 WMessageSend. WExpression ::=
     WExpression "." Ident "(" [WExpression] ")";
 separator WExpression ",";
+
+SingleExpression. WBlockOrExpression ::= WStatement;
+Block. WBlockOrExpression ::= "{" [WStatement] "}";
+
+WTry. WExpression1 ::= "try" WBlockOrExpression [WCatch];
+WCatch. WCatch ::= "catch" Ident ExceptionType WBlockOrExpression;
+separator WCatch "";
+
+ProvidedExceptionType. ExceptionType ::= ":" Ident;
+DefaultExceptionType. ExceptionType ::= ;
 
 WNumberLiteral. WExpression1 ::= Integer;
 WNullLiteral. WExpression1 ::= "null";

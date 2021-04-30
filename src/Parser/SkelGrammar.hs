@@ -47,6 +47,8 @@ transWStatement :: Parser.AbsGrammar.WStatement -> Result
 transWStatement x = case x of
   Parser.AbsGrammar.TopLevelExpression wexpression -> failure x
   Parser.AbsGrammar.VarDeclaration wvariabledeclaration -> failure x
+  Parser.AbsGrammar.WReturn wexpression -> failure x
+  Parser.AbsGrammar.WThrow wexpression -> failure x
 transWVariableDeclaration :: Parser.AbsGrammar.WVariableDeclaration -> Result
 transWVariableDeclaration x = case x of
   Parser.AbsGrammar.WVariableDeclaration wvariabletype ident wexpression -> failure x
@@ -57,6 +59,7 @@ transWVariableType x = case x of
 transWExpression :: Parser.AbsGrammar.WExpression -> Result
 transWExpression x = case x of
   Parser.AbsGrammar.WMessageSend wexpression ident wexpressions -> failure x
+  Parser.AbsGrammar.WTry wblockorexpression wcatchs -> failure x
   Parser.AbsGrammar.WNumberLiteral integer -> failure x
   Parser.AbsGrammar.WNullLiteral -> failure x
   Parser.AbsGrammar.WLiteralTrue -> failure x
@@ -64,4 +67,15 @@ transWExpression x = case x of
   Parser.AbsGrammar.WSelf -> failure x
   Parser.AbsGrammar.WStringLiteral string -> failure x
   Parser.AbsGrammar.WVariable ident -> failure x
+transWBlockOrExpression :: Parser.AbsGrammar.WBlockOrExpression -> Result
+transWBlockOrExpression x = case x of
+  Parser.AbsGrammar.SingleExpression wstatement -> failure x
+  Parser.AbsGrammar.Block wstatements -> failure x
+transWCatch :: Parser.AbsGrammar.WCatch -> Result
+transWCatch x = case x of
+  Parser.AbsGrammar.WCatch ident exceptiontype wblockorexpression -> failure x
+transExceptionType :: Parser.AbsGrammar.ExceptionType -> Result
+transExceptionType x = case x of
+  Parser.AbsGrammar.ProvidedExceptionType ident -> failure x
+  Parser.AbsGrammar.DefaultExceptionType -> failure x
 

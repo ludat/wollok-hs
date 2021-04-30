@@ -49,6 +49,8 @@ data MethodBody = Implemented [WStatement] | NotImplemented
 data WStatement
     = TopLevelExpression WExpression
     | VarDeclaration WVariableDeclaration
+    | WReturn WExpression
+    | WThrow WExpression
   deriving (C.Eq, C.Ord, C.Show, C.Read, C.Data, C.Typeable, C.Generic)
 
 data WVariableDeclaration
@@ -60,6 +62,7 @@ data WVariableType = Var | Const
 
 data WExpression
     = WMessageSend WExpression Ident [WExpression]
+    | WTry WBlockOrExpression [WCatch]
     | WNumberLiteral Integer
     | WNullLiteral
     | WLiteralTrue
@@ -67,5 +70,16 @@ data WExpression
     | WSelf
     | WStringLiteral String
     | WVariable Ident
+  deriving (C.Eq, C.Ord, C.Show, C.Read, C.Data, C.Typeable, C.Generic)
+
+data WBlockOrExpression
+    = SingleExpression WStatement | Block [WStatement]
+  deriving (C.Eq, C.Ord, C.Show, C.Read, C.Data, C.Typeable, C.Generic)
+
+data WCatch = WCatch Ident ExceptionType WBlockOrExpression
+  deriving (C.Eq, C.Ord, C.Show, C.Read, C.Data, C.Typeable, C.Generic)
+
+data ExceptionType
+    = ProvidedExceptionType Ident | DefaultExceptionType
   deriving (C.Eq, C.Ord, C.Show, C.Read, C.Data, C.Typeable, C.Generic)
 
