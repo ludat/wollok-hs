@@ -20,44 +20,65 @@ WSuperclass. WSuperclassDeclaration ::= "inherits" Ident;
 WNoSuperclass. WSuperclassDeclaration ::= ;
 
 WMethodDeclaration. WMethodDeclaration ::=
-    "method" Ident "(" [Ident] ")" NativeIndicator MethodBody;
+    "method" Ident "(" [Ident] ")" MethodBody;
 separator Ident ",";
 
-Native. NativeIndicator ::= "native";
-Custom. NativeIndicator ::= ;
-
-Implemented. MethodBody ::= "{" [WStatement] "}";
-NotImplemented. MethodBody ::= ;
+ImplementedByBlock. MethodBody ::= "{" [WStatement] "}";
+ImplementedByExpression. MethodBody ::= "=" WExpression;
+ImplementedNatively. MethodBody ::= "native";
 
 TopLevelExpression. WStatement ::= WExpression;
 VarDeclaration. WStatement ::= WVariableDeclaration;
 WReturn. WStatement ::= "return" WExpression;
 WThrow. WStatement ::= "throw" WExpression;
+WAssignment. WStatement ::= Ident "=" WExpression;
 
 WVariableDeclaration. WVariableDeclaration ::= WVariableType Ident "=" WExpression;
 Var. WVariableType ::= "var";
 Const. WVariableType ::= "const";
 
-WMessageSend. WExpression ::=
-    WExpression "." Ident "(" [WExpression] ")";
-separator WExpression ",";
-
 SingleExpression. WBlockOrExpression ::= WStatement;
 Block. WBlockOrExpression ::= "{" [WStatement] "}";
 
-WTry. WExpression1 ::= "try" WBlockOrExpression [WCatch];
-WCatch. WCatch ::= "catch" Ident ExceptionType WBlockOrExpression;
+WTry. WExpression ::= "try" WBlockOrExpression [WCatch] WThenAlways;
 separator WCatch "";
+
+WCatch. WCatch ::= "catch" Ident ExceptionType WBlockOrExpression;
+WThenAlwaysProvided. WThenAlways ::= "then" "always" WBlockOrExpression;
+WNoThenAlways. WThenAlways ::= ;
 
 ProvidedExceptionType. ExceptionType ::= ":" Ident;
 DefaultExceptionType. ExceptionType ::= ;
 
-WNumberLiteral. WExpression1 ::= Integer;
-WNullLiteral. WExpression1 ::= "null";
-WLiteralTrue. WExpression1 ::= "true";
-WLiteralFalse. WExpression1 ::= "false";
-WSelf. WExpression1 ::= "self";
-WStringLiteral. WExpression1 ::= String;
-WVariable. WExpression1 ::= Ident;
+rules OpOr ::= "||" | "or";
+WOrExpression. WExpression1 ::= WExpression OpOr WExpression1;
+rules OpAnd ::= "&&" | "and";
+WAndExpression. WExpression1 ::= WExpression1 OpAnd WExpression2;
+rules OpEq ::= "==" | "!=" | "===" | "!==";
+WEqExpression. WExpression2 ::= WExpression2 OpEq WExpression3;
+rules OpCmp ::= ">=" | "<=" | ">" | "<";
+WCmpExpression. WExpression3 ::= WExpression3 OpCmp WExpression4;
+rules OpAdd ::= "+" | "-";
+WAddExpression. WExpression4 ::= WExpression4 OpAdd WExpression5;
+rules OpMult ::= "*" | "/" | "%";
+WMultExpression. WExpression5 ::= WExpression5 OpMult WExpression6;
+rules OpPower ::= "**";
+WPowerExpression. WExpression6 ::= WExpression7 OpPower WExpression6;
+rules OpUnary ::= "not" | "!" | "-" | "+";
+WUnaryExpression. WExpression7 ::= OpUnary WExpression8;
+rules OpPostfix ::= "++" | "--";
+WPostfixExpression. WExpression8 ::= WExpression9 OpPostfix;
 
-coercions WExpression 1 ;
+WMessageSend. WExpression9 ::=
+    WExpression9 "." Ident "(" [WExpression] ")";
+separator WExpression ",";
+
+WNumberLiteral. WExpression10 ::= Integer;
+WNullLiteral. WExpression10 ::= "null";
+WLiteralTrue. WExpression10 ::= "true";
+WLiteralFalse. WExpression10 ::= "false";
+WSelf. WExpression10 ::= "self";
+WStringLiteral. WExpression10 ::= String;
+WVariable. WExpression10 ::= Ident;
+
+coercions WExpression 10 ;

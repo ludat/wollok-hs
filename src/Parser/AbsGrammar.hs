@@ -37,13 +37,13 @@ data WSuperclassDeclaration = WSuperclass Ident | WNoSuperclass
   deriving (C.Eq, C.Ord, C.Show, C.Read, C.Data, C.Typeable, C.Generic)
 
 data WMethodDeclaration
-    = WMethodDeclaration Ident [Ident] NativeIndicator MethodBody
+    = WMethodDeclaration Ident [Ident] MethodBody
   deriving (C.Eq, C.Ord, C.Show, C.Read, C.Data, C.Typeable, C.Generic)
 
-data NativeIndicator = Native | Custom
-  deriving (C.Eq, C.Ord, C.Show, C.Read, C.Data, C.Typeable, C.Generic)
-
-data MethodBody = Implemented [WStatement] | NotImplemented
+data MethodBody
+    = ImplementedByBlock [WStatement]
+    | ImplementedByExpression WExpression
+    | ImplementedNatively
   deriving (C.Eq, C.Ord, C.Show, C.Read, C.Data, C.Typeable, C.Generic)
 
 data WStatement
@@ -51,6 +51,7 @@ data WStatement
     | VarDeclaration WVariableDeclaration
     | WReturn WExpression
     | WThrow WExpression
+    | WAssignment Ident WExpression
   deriving (C.Eq, C.Ord, C.Show, C.Read, C.Data, C.Typeable, C.Generic)
 
 data WVariableDeclaration
@@ -60,9 +61,22 @@ data WVariableDeclaration
 data WVariableType = Var | Const
   deriving (C.Eq, C.Ord, C.Show, C.Read, C.Data, C.Typeable, C.Generic)
 
+data WBlockOrExpression
+    = SingleExpression WStatement | Block [WStatement]
+  deriving (C.Eq, C.Ord, C.Show, C.Read, C.Data, C.Typeable, C.Generic)
+
 data WExpression
-    = WMessageSend WExpression Ident [WExpression]
-    | WTry WBlockOrExpression [WCatch]
+    = WTry WBlockOrExpression [WCatch] WThenAlways
+    | WOrExpression WExpression OpOr WExpression
+    | WAndExpression WExpression OpAnd WExpression
+    | WEqExpression WExpression OpEq WExpression
+    | WCmpExpression WExpression OpCmp WExpression
+    | WAddExpression WExpression OpAdd WExpression
+    | WMultExpression WExpression OpMult WExpression
+    | WPowerExpression WExpression OpPower WExpression
+    | WUnaryExpression OpUnary WExpression
+    | WPostfixExpression WExpression OpPostfix
+    | WMessageSend WExpression Ident [WExpression]
     | WNumberLiteral Integer
     | WNullLiteral
     | WLiteralTrue
@@ -72,14 +86,41 @@ data WExpression
     | WVariable Ident
   deriving (C.Eq, C.Ord, C.Show, C.Read, C.Data, C.Typeable, C.Generic)
 
-data WBlockOrExpression
-    = SingleExpression WStatement | Block [WStatement]
+data WCatch = WCatch Ident ExceptionType WBlockOrExpression
   deriving (C.Eq, C.Ord, C.Show, C.Read, C.Data, C.Typeable, C.Generic)
 
-data WCatch = WCatch Ident ExceptionType WBlockOrExpression
+data WThenAlways
+    = WThenAlwaysProvided WBlockOrExpression | WNoThenAlways
   deriving (C.Eq, C.Ord, C.Show, C.Read, C.Data, C.Typeable, C.Generic)
 
 data ExceptionType
     = ProvidedExceptionType Ident | DefaultExceptionType
+  deriving (C.Eq, C.Ord, C.Show, C.Read, C.Data, C.Typeable, C.Generic)
+
+data OpOr = OpOr1 | OpOr_or
+  deriving (C.Eq, C.Ord, C.Show, C.Read, C.Data, C.Typeable, C.Generic)
+
+data OpAnd = OpAnd1 | OpAnd_and
+  deriving (C.Eq, C.Ord, C.Show, C.Read, C.Data, C.Typeable, C.Generic)
+
+data OpEq = OpEq1 | OpEq2 | OpEq3 | OpEq4
+  deriving (C.Eq, C.Ord, C.Show, C.Read, C.Data, C.Typeable, C.Generic)
+
+data OpCmp = OpCmp1 | OpCmp2 | OpCmp3 | OpCmp4
+  deriving (C.Eq, C.Ord, C.Show, C.Read, C.Data, C.Typeable, C.Generic)
+
+data OpAdd = OpAdd1 | OpAdd2
+  deriving (C.Eq, C.Ord, C.Show, C.Read, C.Data, C.Typeable, C.Generic)
+
+data OpMult = OpMult1 | OpMult2 | OpMult3
+  deriving (C.Eq, C.Ord, C.Show, C.Read, C.Data, C.Typeable, C.Generic)
+
+data OpPower = OpPower1
+  deriving (C.Eq, C.Ord, C.Show, C.Read, C.Data, C.Typeable, C.Generic)
+
+data OpUnary = OpUnary_not | OpUnary1 | OpUnary2 | OpUnary3
+  deriving (C.Eq, C.Ord, C.Show, C.Read, C.Data, C.Typeable, C.Generic)
+
+data OpPostfix = OpPostfix1 | OpPostfix2
   deriving (C.Eq, C.Ord, C.Show, C.Read, C.Data, C.Typeable, C.Generic)
 

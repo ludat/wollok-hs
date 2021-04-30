@@ -18,6 +18,7 @@ spec = do
             x
           }
           method m2() native
+          method m3() = 2
         }
         class Y inherits X {}
 
@@ -32,14 +33,16 @@ spec = do
           try throw 2 catch e : Exception {
             return 3
           }
+          not true || 3 <= 4 && 5 > 6 + 7 + 8 * 9 ** 10 ** 11
         }
       |] `shouldBe`
         (WFile []
           [ WLibraryElement $ WClassDeclaration (Ident "X") WNoSuperclass
             [ WVariableDeclaration Var (Ident "v1") (WNumberLiteral 2) ]
-            [ WMethodDeclaration (Ident "m1") ["x", "y"] Custom
-                $ Implemented [ TopLevelExpression $ WVariable "x" ]
-            , WMethodDeclaration (Ident "m2") [] Native NotImplemented
+            [ WMethodDeclaration (Ident "m1") ["x", "y"]
+                $ ImplementedByBlock [ TopLevelExpression $ WVariable "x" ]
+            , WMethodDeclaration (Ident "m2") [] ImplementedNatively
+            , WMethodDeclaration (Ident "m3") [] (ImplementedByExpression $ WNumberLiteral 2)
             ]
           , WLibraryElement $ WClassDeclaration (Ident "Y") (WSuperclass (Ident "X")) [] []
           ]
@@ -59,7 +62,16 @@ spec = do
                   (SingleExpression (WThrow $ WNumberLiteral 2))
                     [ WCatch (Ident "e") (ProvidedExceptionType (Ident "Exception"))
                         (Block [ WReturn $ WNumberLiteral  3 ])
-                    ]
+                    ] WNoThenAlways
+            , TopLevelExpression (
+                WOrExpression (WUnaryExpression OpUnary_not WLiteralTrue) OpOr1
+                  (WAndExpression
+                    (WCmpExpression (WNumberLiteral 3) OpCmp2 (WNumberLiteral 4)) OpAnd1
+                      (WCmpExpression (WNumberLiteral 5) OpCmp3
+                        (WAddExpression (WAddExpression (WNumberLiteral 6) OpAdd1 (WNumberLiteral 7)) OpAdd1
+                          (WMultExpression (WNumberLiteral 8) OpMult1
+                            (WPowerExpression (WNumberLiteral 9) OpPower1
+                              (WPowerExpression (WNumberLiteral 10) OpPower1 (WNumberLiteral 11))))))))
             ]
           )
         )
