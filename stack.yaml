@@ -36,11 +36,7 @@ packages:
 # forks / in-progress versions pinned to a git hash. For example:
 #
 extra-deps:
-- git: https://github.com/tweag/inline-js
-  commit: ef675745e84d23d51c50660d40acf9e684fbb2d6
-  subdirs:
-    - inline-js
-    - inline-js-core
+  []
 
 # - acme-missiles-0.3
 # - git: https://github.com/commercialhaskell/stack.git

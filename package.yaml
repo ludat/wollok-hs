@@ -30,8 +30,6 @@ dependencies:
 - bytestring
 - text
 - pretty-simple
-- inline-js
-- inline-js-core
 - base >= 4.7 && < 5
 - template-haskell
 - interpolatedstring-perl6

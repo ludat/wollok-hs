@@ -5,7 +5,6 @@ module ParserSpec where
 import Test.Hspec
 import Parser
 import Parser.AbsGrammar
-import Text.InterpolatedString.Perl6 (q)
 
 spec :: Spec
 spec = do

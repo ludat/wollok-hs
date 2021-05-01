@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: f1c7feea4120474363733bee20eaae0ff7d54bbd800483cbbc39e29e4a2f6652
+-- hash: 86df7e30b5275b6bd1f3d2bb69e0dd5713691b9f9f78739fb09d5e84c696d8b9
 
 name:           wollok
 version:        0.1.0.0
@@ -27,7 +27,6 @@ source-repository head
 
 library
   exposed-modules:
-      AST
       Compile
       Lib
       Parser
@@ -53,8 +52,6 @@ library
     , array
     , base >=4.7 && <5
     , bytestring
-    , inline-js
-    , inline-js-core
     , interpolatedstring-perl6
     , pretty-simple
     , scientific
@@ -81,8 +78,6 @@ executable wollok-exe
     , array
     , base >=4.7 && <5
     , bytestring
-    , inline-js
-    , inline-js-core
     , interpolatedstring-perl6
     , pretty-simple
     , scientific
@@ -96,6 +91,7 @@ test-suite wollok-test
   main-is: WollokSpecMain.hs
   other-modules:
       ParserSpec
+      VmSpec
       Paths_wollok
   hs-source-dirs:
       test
@@ -113,8 +109,6 @@ test-suite wollok-test
     , base >=4.7 && <5
     , bytestring
     , hspec
-    , inline-js
-    , inline-js-core
     , interpolatedstring-perl6
     , pretty-simple
     , scientific

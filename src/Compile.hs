@@ -1,26 +1,9 @@
 module Compile where
 
-import AST
+import Parser.AbsGrammar
 
-data WollokBytecode
-  = Noop
-  deriving (Show, Eq)
+compile :: WFile -> t
+compile = error "not implemented"
 
-compile :: WollokAST -> [WollokBytecode]
-compile (Package {..}) = undefined
-compile (Class {..}) = undefined
-compile (Method {..}) = undefined
-compile (Body {..}) = undefined
-compile (Return {..}) = undefined
-compile (LiteralNumber {..}) = undefined
-compile (LiteralString {..}) = undefined
-compile LiteralNull = undefined
-compile (Literal {..}) = undefined
-compile (Reference {..}) = undefined
-compile (Variable {..}) = undefined
-compile (Assignment {..}) = undefined
-compile (New {..}) = undefined
-compile (Send {..}) = undefined
-compile (Field {..}) = undefined
-compile (Singleton {..}) = undefined
-compile (Program {..}) = undefined
+run :: t0 -> t1 -> t
+run = error "not implemented"
