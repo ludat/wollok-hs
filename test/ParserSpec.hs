@@ -12,6 +12,8 @@ spec = do
   describe "wollok parser" $ do
     it "should parse wollok" $ do
       [w|
+        // This is a comment
+        /* This is another comment */
         class X {
           var v1 = 2
           method m1(x, y) {
@@ -42,6 +44,9 @@ spec = do
           { a, b => return 7 }
           { => return 7 }
           { return 7 }
+          object console {
+            method println(obj) native
+          }
         }
       |] `shouldBe`
         (WFile []
@@ -89,6 +94,8 @@ spec = do
                 WClosure (WWithParameters []) [WReturn $ WNumberLiteral 7]
             , TopLevelExpression $
                 WClosure WNoParameters [WReturn $ WNumberLiteral 7]
+            , TopLevelExpression (WObjectLiteral (Ident "console") WNoSuperclass []
+                [ WMethodDeclaration (Ident "println") [Ident "obj"] ImplementedNatively])
             ]
           )
         )

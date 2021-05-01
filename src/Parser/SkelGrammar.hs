@@ -73,6 +73,7 @@ transWExpression x = case x of
   Parser.AbsGrammar.WMessageSend wexpression ident wexpressions -> failure x
   Parser.AbsGrammar.WClosure wclosureparameters wstatements -> failure x
   Parser.AbsGrammar.WIf wexpression wblockorexpression welse -> failure x
+  Parser.AbsGrammar.WObjectLiteral ident wsuperclassdeclaration wvariabledeclarations wmethoddeclarations -> failure x
   Parser.AbsGrammar.WNumberLiteral integer -> failure x
   Parser.AbsGrammar.WNullLiteral -> failure x
   Parser.AbsGrammar.WLiteralTrue -> failure x

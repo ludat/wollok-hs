@@ -79,6 +79,7 @@ data WExpression
     | WMessageSend WExpression Ident [WExpression]
     | WClosure WClosureParameters [WStatement]
     | WIf WExpression WBlockOrExpression WElse
+    | WObjectLiteral Ident WSuperclassDeclaration [WVariableDeclaration] [WMethodDeclaration]
     | WNumberLiteral Integer
     | WNullLiteral
     | WLiteralTrue

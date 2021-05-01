@@ -74,14 +74,18 @@ WMessageSend. WExpression9 ::=
 separator WExpression ",";
 
 WClosure . WExpression10 ::= "{" WClosureParameters [WStatement] "}";
-
 WNoParameters . WClosureParameters ::=;
 WWithParameters . WClosureParameters ::= [Ident] "=>";
 
 WIf . WExpression10 ::= "if" "(" WExpression ")" WBlockOrExpression WElse;
-
 WNoElse . WElse ::= ;
 WElse . WElse ::= "else" WBlockOrExpression;
+
+WObjectLiteral. WExpression10 ::=
+    "object" Ident WSuperclassDeclaration "{"
+        [WVariableDeclaration]
+        [WMethodDeclaration]
+    "}";
 
 WNumberLiteral. WExpression10 ::= Integer;
 WNullLiteral. WExpression10 ::= "null";
@@ -90,5 +94,8 @@ WLiteralFalse. WExpression10 ::= "false";
 WSelf. WExpression10 ::= "self";
 WStringLiteral. WExpression10 ::= String;
 WVariable. WExpression10 ::= Ident;
+
+comment "//" ;
+comment "/*" "*/" ;
 
 coercions WExpression 10;
