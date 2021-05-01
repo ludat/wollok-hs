@@ -77,6 +77,7 @@ data WExpression
     | WUnaryExpression OpUnary WExpression
     | WPostfixExpression WExpression OpPostfix
     | WMessageSend WExpression Ident [WExpression]
+    | WClosure WClosureParameters [WStatement]
     | WIf WExpression WBlockOrExpression WElse
     | WNumberLiteral Integer
     | WNullLiteral
@@ -123,6 +124,9 @@ data OpUnary = OpUnary_not | OpUnary1 | OpUnary2 | OpUnary3
   deriving (C.Eq, C.Ord, C.Show, C.Read, C.Data, C.Typeable, C.Generic)
 
 data OpPostfix = OpPostfix1 | OpPostfix2
+  deriving (C.Eq, C.Ord, C.Show, C.Read, C.Data, C.Typeable, C.Generic)
+
+data WClosureParameters = WNoParameters | WWithParameters [Ident]
   deriving (C.Eq, C.Ord, C.Show, C.Read, C.Data, C.Typeable, C.Generic)
 
 data WElse = WNoElse | WElse WBlockOrExpression

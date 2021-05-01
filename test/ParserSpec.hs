@@ -39,6 +39,9 @@ spec = do
           } else {
             13
           }
+          { a, b => return 7 }
+          { => return 7 }
+          { return 7 }
         }
       |] `shouldBe`
         (WFile []
@@ -79,8 +82,13 @@ spec = do
                               (WPowerExpression (WNumberLiteral 10) OpPower1 (WNumberLiteral 11))))))))
             , WReturn (
               WIf (WEqExpression (WVariable (Ident "a")) OpEq1 (WNumberLiteral 7))
-                (Block [TopLevelExpression $ WNumberLiteral 42]) (WElse (Block [TopLevelExpression (WNumberLiteral 13)]))
-            )
+                (Block [TopLevelExpression $ WNumberLiteral 42]) (WElse (Block [TopLevelExpression (WNumberLiteral 13)])))
+            , TopLevelExpression $
+                WClosure (WWithParameters [Ident "a", Ident "b"]) [WReturn $ WNumberLiteral 7]
+            , TopLevelExpression $
+                WClosure (WWithParameters []) [WReturn $ WNumberLiteral 7]
+            , TopLevelExpression $
+                WClosure WNoParameters [WReturn $ WNumberLiteral 7]
             ]
           )
         )
