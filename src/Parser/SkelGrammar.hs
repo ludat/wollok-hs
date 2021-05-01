@@ -71,6 +71,7 @@ transWExpression x = case x of
   Parser.AbsGrammar.WUnaryExpression opunary wexpression -> failure x
   Parser.AbsGrammar.WPostfixExpression wexpression oppostfix -> failure x
   Parser.AbsGrammar.WMessageSend wexpression ident wexpressions -> failure x
+  Parser.AbsGrammar.WIf wexpression wblockorexpression welse -> failure x
   Parser.AbsGrammar.WNumberLiteral integer -> failure x
   Parser.AbsGrammar.WNullLiteral -> failure x
   Parser.AbsGrammar.WLiteralTrue -> failure x
@@ -131,4 +132,8 @@ transOpPostfix :: Parser.AbsGrammar.OpPostfix -> Result
 transOpPostfix x = case x of
   Parser.AbsGrammar.OpPostfix1 -> failure x
   Parser.AbsGrammar.OpPostfix2 -> failure x
+transWElse :: Parser.AbsGrammar.WElse -> Result
+transWElse x = case x of
+  Parser.AbsGrammar.WNoElse -> failure x
+  Parser.AbsGrammar.WElse wblockorexpression -> failure x
 

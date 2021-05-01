@@ -34,6 +34,11 @@ spec = do
             return 3
           }
           not true || 3 <= 4 && 5 > 6 + 7 + 8 * 9 ** 10 ** 11
+          return if (a == 7) {
+            42
+          } else {
+            13
+          }
         }
       |] `shouldBe`
         (WFile []
@@ -72,6 +77,10 @@ spec = do
                           (WMultExpression (WNumberLiteral 8) OpMult1
                             (WPowerExpression (WNumberLiteral 9) OpPower1
                               (WPowerExpression (WNumberLiteral 10) OpPower1 (WNumberLiteral 11))))))))
+            , WReturn (
+              WIf (WEqExpression (WVariable (Ident "a")) OpEq1 (WNumberLiteral 7))
+                (Block [TopLevelExpression $ WNumberLiteral 42]) (WElse (Block [TopLevelExpression (WNumberLiteral 13)]))
+            )
             ]
           )
         )

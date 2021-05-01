@@ -201,6 +201,7 @@ instance Print Parser.AbsGrammar.WExpression where
     Parser.AbsGrammar.WUnaryExpression opunary wexpression -> prPrec i 7 (concatD [prt 0 opunary, prt 8 wexpression])
     Parser.AbsGrammar.WPostfixExpression wexpression oppostfix -> prPrec i 8 (concatD [prt 9 wexpression, prt 0 oppostfix])
     Parser.AbsGrammar.WMessageSend wexpression id wexpressions -> prPrec i 9 (concatD [prt 9 wexpression, doc (showString "."), prt 0 id, doc (showString "("), prt 0 wexpressions, doc (showString ")")])
+    Parser.AbsGrammar.WIf wexpression wblockorexpression welse -> prPrec i 10 (concatD [doc (showString "if"), doc (showString "("), prt 0 wexpression, doc (showString ")"), prt 0 wblockorexpression, prt 0 welse])
     Parser.AbsGrammar.WNumberLiteral n -> prPrec i 10 (concatD [prt 0 n])
     Parser.AbsGrammar.WNullLiteral -> prPrec i 10 (concatD [doc (showString "null")])
     Parser.AbsGrammar.WLiteralTrue -> prPrec i 10 (concatD [doc (showString "true")])
@@ -284,4 +285,9 @@ instance Print Parser.AbsGrammar.OpPostfix where
 
 instance Print [Parser.AbsGrammar.WExpression] where
   prt = prtList
+
+instance Print Parser.AbsGrammar.WElse where
+  prt i e = case e of
+    Parser.AbsGrammar.WNoElse -> prPrec i 0 (concatD [])
+    Parser.AbsGrammar.WElse wblockorexpression -> prPrec i 0 (concatD [doc (showString "else"), prt 0 wblockorexpression])
 
