@@ -20,8 +20,11 @@ WSuperclass. WSuperclassDeclaration ::= "inherits" Ident;
 WNoSuperclass. WSuperclassDeclaration ::= ;
 
 WMethodDeclaration. WMethodDeclaration ::=
-    "method" Ident "(" [Ident] ")" MethodBody;
+    "method" WSelector "(" [Ident] ")" MethodBody;
 separator Ident ",";
+
+WSelector. WSelector ::= Ident;
+WOpSelector. WSelector ::= OpAdd;
 
 ImplementedByBlock. MethodBody ::= "{" [WStatement] "}";
 ImplementedByExpression. MethodBody ::= "=" WExpression;

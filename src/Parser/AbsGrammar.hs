@@ -38,7 +38,10 @@ data WSuperclassDeclaration = WSuperclass Ident | WNoSuperclass
   deriving (C.Eq, C.Ord, C.Show, C.Read, C.Data, C.Typeable, C.Generic)
 
 data WMethodDeclaration
-    = WMethodDeclaration Ident [Ident] MethodBody
+    = WMethodDeclaration WSelector [Ident] MethodBody
+  deriving (C.Eq, C.Ord, C.Show, C.Read, C.Data, C.Typeable, C.Generic)
+
+data WSelector = WSelector Ident | WOpSelector OpAdd
   deriving (C.Eq, C.Ord, C.Show, C.Read, C.Data, C.Typeable, C.Generic)
 
 data MethodBody

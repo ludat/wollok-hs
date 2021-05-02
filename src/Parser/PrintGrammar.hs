@@ -150,12 +150,17 @@ instance Print Parser.AbsGrammar.WSuperclassDeclaration where
 
 instance Print Parser.AbsGrammar.WMethodDeclaration where
   prt i e = case e of
-    Parser.AbsGrammar.WMethodDeclaration id ids methodbody -> prPrec i 0 (concatD [doc (showString "method"), prt 0 id, doc (showString "("), prt 0 ids, doc (showString ")"), prt 0 methodbody])
+    Parser.AbsGrammar.WMethodDeclaration wselector ids methodbody -> prPrec i 0 (concatD [doc (showString "method"), prt 0 wselector, doc (showString "("), prt 0 ids, doc (showString ")"), prt 0 methodbody])
   prtList _ [] = concatD []
   prtList _ (x:xs) = concatD [prt 0 x, prt 0 xs]
 
 instance Print [Parser.AbsGrammar.Ident] where
   prt = prtList
+
+instance Print Parser.AbsGrammar.WSelector where
+  prt i e = case e of
+    Parser.AbsGrammar.WSelector id -> prPrec i 0 (concatD [prt 0 id])
+    Parser.AbsGrammar.WOpSelector opadd -> prPrec i 0 (concatD [prt 0 opadd])
 
 instance Print Parser.AbsGrammar.MethodBody where
   prt i e = case e of

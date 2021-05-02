@@ -21,6 +21,9 @@ spec = do
     it "" $ do
       stackAfterExecuting
         [w|
+            class Number {
+                method +(other) native
+            }
             program x {
                 41 + 1
             }
@@ -29,6 +32,9 @@ spec = do
     it "" $ do
       stackAfterExecuting
         [w|
+            class Number {
+                method +(other) native
+            }
             program x {
                 10
                 41 + 1

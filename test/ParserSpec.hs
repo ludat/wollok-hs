@@ -51,10 +51,10 @@ spec = do
         (WFile []
           [ WLibraryElement $ WClassDeclaration (Ident "X") WNoSuperclass
             [ WVariableDeclaration Var (Ident "v1") (WNumberLiteral 2) ]
-            [ WMethodDeclaration (Ident "m1") ["x", "y"]
+            [ WMethodDeclaration (WSelector $ Ident "m1") ["x", "y"]
                 $ ImplementedByBlock [ TopLevelExpression $ WVariable "x" ]
-            , WMethodDeclaration (Ident "m2") [] ImplementedNatively
-            , WMethodDeclaration (Ident "m3") [] (ImplementedByExpression $ WNumberLiteral 2)
+            , WMethodDeclaration (WSelector $ Ident "m2") [] ImplementedNatively
+            , WMethodDeclaration (WSelector $ Ident "m3") [] (ImplementedByExpression $ WNumberLiteral 2)
             ]
           , WLibraryElement $ WClassDeclaration (Ident "Y") (WSuperclass (Ident "X")) [] []
           ]
@@ -94,7 +94,7 @@ spec = do
             , TopLevelExpression $
                 WClosure WNoParameters [WReturn $ WNumberLiteral 7]
             , TopLevelExpression (WObjectLiteral (Ident "console") WNoSuperclass []
-                [ WMethodDeclaration (Ident "println") [Ident "obj"] ImplementedNatively])
+                [ WMethodDeclaration (WSelector $ Ident "println") [Ident "obj"] ImplementedNatively])
             ]
           )
         )

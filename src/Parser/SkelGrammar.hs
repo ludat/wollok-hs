@@ -35,7 +35,11 @@ transWSuperclassDeclaration x = case x of
   Parser.AbsGrammar.WNoSuperclass -> failure x
 transWMethodDeclaration :: Parser.AbsGrammar.WMethodDeclaration -> Result
 transWMethodDeclaration x = case x of
-  Parser.AbsGrammar.WMethodDeclaration ident idents methodbody -> failure x
+  Parser.AbsGrammar.WMethodDeclaration wselector idents methodbody -> failure x
+transWSelector :: Parser.AbsGrammar.WSelector -> Result
+transWSelector x = case x of
+  Parser.AbsGrammar.WSelector ident -> failure x
+  Parser.AbsGrammar.WOpSelector opadd -> failure x
 transMethodBody :: Parser.AbsGrammar.MethodBody -> Result
 transMethodBody x = case x of
   Parser.AbsGrammar.ImplementedByBlock wstatements -> failure x
