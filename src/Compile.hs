@@ -38,8 +38,8 @@ toList stack =
     (Just (stackWithoutElement, firstElement)) ->
       firstElement : toList stackWithoutElement
 
-estadoInicialVm :: VmState
-estadoInicialVm = VmState { vmStack = stackNew }
+vmInitialState :: VmState
+vmInitialState = VmState { vmStack = stackNew }
 
 compile :: WFile -> WollokBytecode
 compile (WFile imports classes program) = compileProgram program
@@ -82,9 +82,9 @@ compileStatement (WReturn w1) = undefined
 compileStatement (WThrow w1) = undefined
 compileStatement (WAssignment i w2) = undefined
 
-run :: WollokBytecode -> VmState -> VmState
-run (WollokBytecode instructions) vmState =
-  snd $ State.runState (forM instructions runInstruction) vmState
+run :: WollokBytecode -> VmState
+run (WollokBytecode instructions) =
+  snd $ State.runState (forM instructions runInstruction) vmInitialState
 
 runInstruction :: Instruction -> ExecutionM ()
 runInstruction (Push value) = push value

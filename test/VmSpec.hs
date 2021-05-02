@@ -5,46 +5,39 @@ module VmSpec where
 import Test.Hspec
 import Parser
 import Compile
-import Data.Stack
+import Parser.AbsGrammar
 
 spec :: Spec
 spec = do
   describe "wollok VM" $ do
     it "" $ do
-      let ast =
-            [w|
-                program x {
-                    42
-                }
-            |]
-      let bytecode = compile ast
-      let estadoFinalVm = run bytecode estadoInicialVm
-
-      (stackPeek $ vmStack estadoFinalVm) `shouldBe` Just (WInteger 42)
+      stackAfterExecuting
+        [w|
+            program x {
+                42
+            }
+        |]
+        `shouldBe` [WInteger 42]
     it "" $ do
-      let ast =
-            [w|
-                program x {
-                    41 + 1
-                }
-            |]
-      let bytecode = compile ast
-      let estadoFinalVm = run bytecode estadoInicialVm
-
-      (stackPeek $ vmStack estadoFinalVm) `shouldBe` Just (WInteger 42)
+      stackAfterExecuting
+        [w|
+            program x {
+                41 + 1
+            }
+        |]
+        `shouldBe` [WInteger 42]
     it "" $ do
-      let ast =
-            [w|
-                program x {
-                    10
-                    41 + 1
-                }
-            |]
-      let bytecode = compile ast
-      let estadoFinalVm = run bytecode estadoInicialVm
+      stackAfterExecuting
+        [w|
+            program x {
+                10
+                41 + 1
+            }
+        |]
+        `shouldBe` [WInteger 42, WInteger 10]
 
-      (toList $ vmStack estadoFinalVm) `shouldBe` [WInteger 42, WInteger 10]
-
+stackAfterExecuting :: WFile -> [StackFrame]
+stackAfterExecuting = toList . vmStack . run . compile
 
 todoSpec :: IO ()
 todoSpec = error "Missing implementation"
