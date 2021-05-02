@@ -1,6 +1,8 @@
 {-# LANGUAGE StandaloneDeriving #-}
+{-# LANGUAGE PatternSynonyms #-}
 {-# OPTIONS_GHC -Wno-unused-matches #-}
 {-# OPTIONS_GHC -Wno-orphans #-}
+{-# OPTIONS_GHC -Wno-typed-holes #-}
 module Compile where
 
 import Parser.AbsGrammar
@@ -9,13 +11,31 @@ import Data.Function ( on )
 import Control.Monad.State.Strict ( State )
 import qualified Control.Monad.State.Strict as State
 import Control.Monad
+import Data.Map.Strict (Map)
+import qualified Data.Map.Strict as Map
 
-data WollokBytecode = WollokBytecode { programBytecode :: [Instruction] }
+data WollokBytecode = WollokBytecode
+  { programBytecode :: [Instruction]
+  , classesBytecode :: CompiledClasses
+  } deriving (Show, Eq)
+
+type CompiledClasses = Map ClassName WollokCompiledClass
+
+newtype WollokCompiledClass = WollokCompiledClass (Map Selector MethodImplementation)
   deriving (Show, Eq)
+
+data MethodImplementation = Custom [Instruction] | Native ClassName Selector
+  deriving (Show, Eq)
+
+data Selector = Selector String Int
+  deriving (Show, Eq, Ord)
+
+newtype ClassName = ClassName String
+  deriving (Show, Eq, Ord)
 
 data Instruction
   = Push RuntimeValue
-  | Send String Int
+  | Send Selector
   deriving (Show, Eq)
 
 data RuntimeValue = WInteger Integer
@@ -23,13 +43,19 @@ data RuntimeValue = WInteger Integer
 
 type StackFrame = RuntimeValue
 
-data VmState = VmState { vmStack :: Stack StackFrame }
-  deriving (Show)
+data VmState = VmState
+  { vmStack :: Stack StackFrame
+  , vmClassesBytecode :: CompiledClasses
+  }
+  deriving (Show, Eq)
 
 type ExecutionM = State VmState
 
 instance Eq a => Eq (Stack a) where
   (==) = (==) `on` toList
+
+classOf :: RuntimeValue -> ClassName
+classOf (WInteger _) = ClassName "Number"
 
 toList :: Stack a -> [a]
 toList stack =
@@ -38,23 +64,59 @@ toList stack =
     (Just (stackWithoutElement, firstElement)) ->
       firstElement : toList stackWithoutElement
 
-vmInitialState :: VmState
-vmInitialState = VmState { vmStack = stackNew }
+vmInitialState :: CompiledClasses -> VmState
+vmInitialState compiledClasses = VmState { vmStack = stackNew, vmClassesBytecode = compiledClasses }
 
 compile :: WFile -> WollokBytecode
-compile (WFile imports classes program) = compileProgram program
+compile (WFile imports classes program) =
+  WollokBytecode
+    { programBytecode = compileProgram program
+    , classesBytecode = compileClasses classes
+    }
 
-compileProgram :: WProgram -> WollokBytecode
-compileProgram (WProgram _ statements) =
-  WollokBytecode { programBytecode = concatMap compileStatement statements }
+compileProgram :: WProgram -> [Instruction]
+compileProgram (WProgram _ statements) = concatMap compileStatement statements
+
+compileClasses :: [WLibraryElement] -> CompiledClasses
+compileClasses libraryElements = Map.fromList $ map compileClass libraryElements
+
+compileClass :: WLibraryElement -> (ClassName, WollokCompiledClass)
+compileClass
+  (WLibraryElement (WClassDeclaration (Ident classIdentifier)
+                                      superclassName
+                                      instanceVariables
+                                      methods))
+  = (className, WollokCompiledClass $ Map.fromList $ map (compileMethod className) methods)
+  where className = ClassName classIdentifier
+
+compileMethod :: ClassName -> WMethodDeclaration -> (Selector, MethodImplementation)
+compileMethod className (WMethodDeclaration name parameters body) =
+  (selector, compileMethodBody className selector body)
+  where selector = Selector (nameFrom name) (length parameters)
+
+nameFrom :: WSelector -> String
+nameFrom (WSelector (Ident name)) = name
+nameFrom (WOpSelector OpAdd1) = "+"
+nameFrom (WOpSelector OpAdd2) = "-"
+
+-- TODO:
+pattern SelectorWithName :: String -> WSelector
+pattern SelectorWithName name = WSelector (Ident name)
+
+compileMethodBody :: ClassName -> Selector -> MethodBody -> MethodImplementation
+compileMethodBody className selector methodBody =
+  case methodBody of
+    ImplementedNatively -> Native className selector
+    (ImplementedByBlock l_w) -> undefined
+    (ImplementedByExpression w) -> undefined
 
 compileStatement :: WStatement -> [Instruction]
 compileStatement (TopLevelExpression (WNumberLiteral n)) = [ Push $ WInteger n ]
 compileStatement (TopLevelExpression (WAddExpression (WNumberLiteral n1) _ (WNumberLiteral n2))) =
   [
-    Push $ WInteger n1,
     Push $ WInteger n2,
-    Send "+" 1
+    Push $ WInteger n1,
+    Send $ Selector "+" 1
   ]
 compileStatement (TopLevelExpression (WAddExpression _ _ _)) = undefined
 compileStatement (TopLevelExpression (WTry w l_w w4)) = undefined
@@ -83,16 +145,34 @@ compileStatement (WThrow w1) = undefined
 compileStatement (WAssignment i w2) = undefined
 
 run :: WollokBytecode -> VmState
-run (WollokBytecode instructions) =
-  snd $ State.runState (forM instructions runInstruction) vmInitialState
+run (WollokBytecode {..}) =
+  snd $ State.runState (forM programBytecode runInstruction) (vmInitialState classesBytecode)
 
 runInstruction :: Instruction -> ExecutionM ()
 runInstruction (Push value) = push value
 
-runInstruction (Send selector numberOfArguments) = do
-  WInteger n1 <- pop
-  WInteger n2 <- pop
-  push $ WInteger (n1 + n2)
+runInstruction (Send selector) = do
+  receiver <- pop
+  vmState <- State.get
+  let wollokClass = lookupClassOf vmState receiver
+  let Just wollokMethod = lookupMethod wollokClass selector
+  case wollokMethod of
+    Custom _ -> undefined
+    Native className' selector' -> do
+      let WInteger n1 = receiver
+      WInteger n2 <- pop
+      push $ WInteger (n1 + n2)
+
+lookupClassOf :: VmState -> RuntimeValue -> WollokCompiledClass
+lookupClassOf (VmState {..}) object =
+  let className = classOf object in
+    case Map.lookup className vmClassesBytecode of
+      Just c -> c
+      Nothing -> error $ "Class not found: " ++ show className
+
+lookupMethod :: WollokCompiledClass -> Selector -> Maybe MethodImplementation
+lookupMethod (WollokCompiledClass methodDictionary) selector =
+  Map.lookup selector methodDictionary
 
 pop :: ExecutionM StackFrame
 pop = do

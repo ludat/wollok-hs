@@ -36,6 +36,7 @@ dependencies:
 - array
 - Stack
 - mtl
+- containers
 
 build-tools:
 - happy

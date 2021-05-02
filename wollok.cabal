@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: f65612d3b7986eb4ce1fadf3904849c2733bdd3ce1727fd894f4dd0c5e38d0e8
+-- hash: 447911164742313dc954fa21fb2aa45292069587dc8f09bef04b44f0382a67c4
 
 name:           wollok
 version:        0.1.0.0
@@ -54,6 +54,7 @@ library
     , array
     , base >=4.7 && <5
     , bytestring
+    , containers
     , interpolatedstring-perl6
     , mtl
     , pretty-simple
@@ -82,6 +83,7 @@ executable wollok-exe
     , array
     , base >=4.7 && <5
     , bytestring
+    , containers
     , interpolatedstring-perl6
     , mtl
     , pretty-simple
@@ -114,6 +116,7 @@ test-suite wollok-test
     , array
     , base >=4.7 && <5
     , bytestring
+    , containers
     , hspec
     , interpolatedstring-perl6
     , mtl
