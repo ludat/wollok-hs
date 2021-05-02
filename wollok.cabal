@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: f4d936777e2ee449159c37d79b93c43bb6e59239114e47f21a8a03846b020c25
+-- hash: f65612d3b7986eb4ce1fadf3904849c2733bdd3ce1727fd894f4dd0c5e38d0e8
 
 name:           wollok
 version:        0.1.0.0
@@ -41,6 +41,7 @@ library
   hs-source-dirs:
       src
   default-extensions: QuasiQuotes LambdaCase OverloadedStrings DeriveGeneric TypeApplications RecordWildCards DerivingStrategies DerivingVia
+  ghc-options: -Wall
   build-tools:
       alex
     , happy
@@ -54,6 +55,7 @@ library
     , base >=4.7 && <5
     , bytestring
     , interpolatedstring-perl6
+    , mtl
     , pretty-simple
     , scientific
     , template-haskell
@@ -67,7 +69,7 @@ executable wollok-exe
   hs-source-dirs:
       app
   default-extensions: QuasiQuotes LambdaCase OverloadedStrings DeriveGeneric TypeApplications RecordWildCards DerivingStrategies DerivingVia
-  ghc-options: -threaded -rtsopts -with-rtsopts=-N
+  ghc-options: -Wall -threaded -rtsopts -with-rtsopts=-N
   build-tools:
       alex
     , happy
@@ -81,6 +83,7 @@ executable wollok-exe
     , base >=4.7 && <5
     , bytestring
     , interpolatedstring-perl6
+    , mtl
     , pretty-simple
     , scientific
     , template-haskell
@@ -98,7 +101,7 @@ test-suite wollok-test
   hs-source-dirs:
       test
   default-extensions: QuasiQuotes LambdaCase OverloadedStrings DeriveGeneric TypeApplications RecordWildCards DerivingStrategies DerivingVia
-  ghc-options: -threaded -rtsopts -with-rtsopts=-N -main-is WollokSpecMain
+  ghc-options: -Wall -threaded -rtsopts -with-rtsopts=-N -main-is WollokSpecMain
   build-tools:
       alex
     , happy
@@ -113,6 +116,7 @@ test-suite wollok-test
     , bytestring
     , hspec
     , interpolatedstring-perl6
+    , mtl
     , pretty-simple
     , scientific
     , template-haskell

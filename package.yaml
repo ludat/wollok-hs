@@ -35,6 +35,7 @@ dependencies:
 - interpolatedstring-perl6
 - array
 - Stack
+- mtl
 
 build-tools:
 - happy
@@ -50,6 +51,9 @@ default-extensions:
 - RecordWildCards
 - DerivingStrategies
 - DerivingVia
+
+ghc-options:
+- -Wall
 
 library:
   source-dirs: src

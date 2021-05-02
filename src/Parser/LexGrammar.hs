@@ -1,3 +1,4 @@
+{-# OPTIONS_GHC -w #-}
 {-# OPTIONS_GHC -fno-warn-unused-binds -fno-warn-missing-signatures #-}
 {-# LANGUAGE CPP,MagicHash #-}
 {-# LINE 3 "generated-code/Parser/LexGrammar.x" #-}

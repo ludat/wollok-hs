@@ -1,7 +1,6 @@
 {-# LANGUAGE DeriveAnyClass #-}
 module Parser where
 
-import Paths_wollok
 import Parser.ParGrammar (myLexer, pWFile)
 import qualified Parser.AbsGrammar
 import Language.Haskell.TH.Quote
@@ -24,5 +23,5 @@ w =
     wollokQuote s = do
       case parsearWollok s of
         (Left err) -> fail err
-        (Right w) -> liftData w
+        (Right ast) -> liftData ast
 
