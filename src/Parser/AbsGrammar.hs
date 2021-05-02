@@ -41,7 +41,17 @@ data WMethodDeclaration
     = WMethodDeclaration WSelector [Ident] MethodBody
   deriving (C.Eq, C.Ord, C.Show, C.Read, C.Data, C.Typeable, C.Generic)
 
-data WSelector = WSelector Ident | WOpSelector OpAdd
+data WSelector
+    = WSelector Ident
+    | WAddOpSelector OpAdd
+    | WOrOpSelector OpOr
+    | WAndOpSelector OpAnd
+    | WMultOpSelector OpMult
+    | WEqOpSelector OpEq
+    | WCmpOpSelector OpCmp
+    | WPowerOpSelector OpPower
+    | WUnaryOpSelector OpUnary
+    | WPostfixOpSelector OpPostfix
   deriving (C.Eq, C.Ord, C.Show, C.Read, C.Data, C.Typeable, C.Generic)
 
 data MethodBody

@@ -160,7 +160,15 @@ instance Print [Parser.AbsGrammar.Ident] where
 instance Print Parser.AbsGrammar.WSelector where
   prt i e = case e of
     Parser.AbsGrammar.WSelector id -> prPrec i 0 (concatD [prt 0 id])
-    Parser.AbsGrammar.WOpSelector opadd -> prPrec i 0 (concatD [prt 0 opadd])
+    Parser.AbsGrammar.WAddOpSelector opadd -> prPrec i 0 (concatD [prt 0 opadd])
+    Parser.AbsGrammar.WOrOpSelector opor -> prPrec i 0 (concatD [prt 0 opor])
+    Parser.AbsGrammar.WAndOpSelector opand -> prPrec i 0 (concatD [prt 0 opand])
+    Parser.AbsGrammar.WMultOpSelector opmult -> prPrec i 0 (concatD [prt 0 opmult])
+    Parser.AbsGrammar.WEqOpSelector opeq -> prPrec i 0 (concatD [prt 0 opeq])
+    Parser.AbsGrammar.WCmpOpSelector opcmp -> prPrec i 0 (concatD [prt 0 opcmp])
+    Parser.AbsGrammar.WPowerOpSelector oppower -> prPrec i 0 (concatD [prt 0 oppower])
+    Parser.AbsGrammar.WUnaryOpSelector opunary -> prPrec i 0 (concatD [prt 0 opunary])
+    Parser.AbsGrammar.WPostfixOpSelector oppostfix -> prPrec i 0 (concatD [prt 0 oppostfix])
 
 instance Print Parser.AbsGrammar.MethodBody where
   prt i e = case e of

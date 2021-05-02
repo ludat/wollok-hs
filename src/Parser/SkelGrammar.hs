@@ -39,7 +39,15 @@ transWMethodDeclaration x = case x of
 transWSelector :: Parser.AbsGrammar.WSelector -> Result
 transWSelector x = case x of
   Parser.AbsGrammar.WSelector ident -> failure x
-  Parser.AbsGrammar.WOpSelector opadd -> failure x
+  Parser.AbsGrammar.WAddOpSelector opadd -> failure x
+  Parser.AbsGrammar.WOrOpSelector opor -> failure x
+  Parser.AbsGrammar.WAndOpSelector opand -> failure x
+  Parser.AbsGrammar.WMultOpSelector opmult -> failure x
+  Parser.AbsGrammar.WEqOpSelector opeq -> failure x
+  Parser.AbsGrammar.WCmpOpSelector opcmp -> failure x
+  Parser.AbsGrammar.WPowerOpSelector oppower -> failure x
+  Parser.AbsGrammar.WUnaryOpSelector opunary -> failure x
+  Parser.AbsGrammar.WPostfixOpSelector oppostfix -> failure x
 transMethodBody :: Parser.AbsGrammar.MethodBody -> Result
 transMethodBody x = case x of
   Parser.AbsGrammar.ImplementedByBlock wstatements -> failure x

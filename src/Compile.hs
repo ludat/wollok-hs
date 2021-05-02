@@ -96,12 +96,30 @@ compileMethod className (WMethodDeclaration name parameters body) =
 
 nameFrom :: WSelector -> String
 nameFrom (WSelector (Ident name)) = name
-nameFrom (WOpSelector OpAdd1) = "+"
-nameFrom (WOpSelector OpAdd2) = "-"
-
--- TODO:
-pattern SelectorWithName :: String -> WSelector
-pattern SelectorWithName name = WSelector (Ident name)
+nameFrom (WAddOpSelector OpAdd1) = "+"
+nameFrom (WAddOpSelector OpAdd2) = "-"
+nameFrom (WOrOpSelector OpOr1) = "||"
+nameFrom (WOrOpSelector OpOr_or) = "or"
+nameFrom (WAndOpSelector OpAnd1) = "&&"
+nameFrom (WAndOpSelector OpAnd_and) = "and"
+nameFrom (WMultOpSelector OpMult1) = "*"
+nameFrom (WMultOpSelector OpMult2) = "/"
+nameFrom (WMultOpSelector OpMult3) = "%"
+nameFrom (WEqOpSelector OpEq1) = "=="
+nameFrom (WEqOpSelector OpEq2) = "!="
+nameFrom (WEqOpSelector OpEq3) = "==="
+nameFrom (WEqOpSelector OpEq4) = "!=="
+nameFrom (WCmpOpSelector OpCmp1) = ">="
+nameFrom (WCmpOpSelector OpCmp2) = "<="
+nameFrom (WCmpOpSelector OpCmp3) = ">"
+nameFrom (WCmpOpSelector OpCmp4) = "<"
+nameFrom (WPowerOpSelector OpPower1) = "**"
+nameFrom (WUnaryOpSelector OpUnary_not) = "not"
+nameFrom (WUnaryOpSelector OpUnary1) = "!"
+nameFrom (WUnaryOpSelector OpUnary2) = "-"
+nameFrom (WUnaryOpSelector OpUnary3) = "+"
+nameFrom (WPostfixOpSelector OpPostfix1) = "++"
+nameFrom (WPostfixOpSelector OpPostfix2) = "--"
 
 compileMethodBody :: ClassName -> Selector -> MethodBody -> MethodImplementation
 compileMethodBody className selector methodBody =

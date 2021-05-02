@@ -24,7 +24,15 @@ WMethodDeclaration. WMethodDeclaration ::=
 separator Ident ",";
 
 WSelector. WSelector ::= Ident;
-WOpSelector. WSelector ::= OpAdd;
+WAddOpSelector. WSelector ::= OpAdd;
+WOrOpSelector. WSelector ::= OpOr;
+WAndOpSelector. WSelector ::= OpAnd;
+WMultOpSelector. WSelector ::= OpMult;
+WEqOpSelector. WSelector ::= OpEq;
+WCmpOpSelector. WSelector ::= OpCmp;
+WPowerOpSelector. WSelector ::= OpPower;
+WUnaryOpSelector. WSelector ::= OpUnary;
+WPostfixOpSelector. WSelector ::= OpPostfix;
 
 ImplementedByBlock. MethodBody ::= "{" [WStatement] "}";
 ImplementedByExpression. MethodBody ::= "=" WExpression;
