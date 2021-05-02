@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 86df7e30b5275b6bd1f3d2bb69e0dd5713691b9f9f78739fb09d5e84c696d8b9
+-- hash: f4d936777e2ee449159c37d79b93c43bb6e59239114e47f21a8a03846b020c25
 
 name:           wollok
 version:        0.1.0.0
@@ -47,7 +47,8 @@ library
   build-tool-depends:
       BNFC:BNFC
   build-depends:
-      aeson
+      Stack
+    , aeson
     , aeson-pretty
     , array
     , base >=4.7 && <5
@@ -73,7 +74,8 @@ executable wollok-exe
   build-tool-depends:
       BNFC:BNFC
   build-depends:
-      aeson
+      Stack
+    , aeson
     , aeson-pretty
     , array
     , base >=4.7 && <5
@@ -103,7 +105,8 @@ test-suite wollok-test
   build-tool-depends:
       BNFC:BNFC
   build-depends:
-      aeson
+      Stack
+    , aeson
     , aeson-pretty
     , array
     , base >=4.7 && <5

@@ -6,6 +6,7 @@ import Test.Hspec
 import Parser
 import Parser.AbsGrammar
 import Compile
+import Data.Stack
 
 spec :: Spec
 spec = do
@@ -17,11 +18,9 @@ spec = do
             }
         |]
         let bytecode = compile ast
-        let estadoInicialVm = undefined
         let estadoFinalVm = run bytecode estadoInicialVm
 
-        -- estadoFinalVm.pila.top == WollokVMInteger 42
-        todoSpec
+        (stackPeek $ vmStack estadoFinalVm) `shouldBe` Just (Value (WInteger 42))
 
 
 todoSpec :: IO ()
