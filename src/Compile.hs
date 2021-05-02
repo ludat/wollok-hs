@@ -38,7 +38,9 @@ data Instruction
   | Send Selector
   deriving (Show, Eq)
 
-data RuntimeValue = WInteger Integer
+data RuntimeValue
+  = WInteger Integer
+  | WBoolean Bool
   deriving (Show, Eq)
 
 type StackFrame = RuntimeValue
@@ -56,6 +58,7 @@ instance Eq a => Eq (Stack a) where
 
 classOf :: RuntimeValue -> ClassName
 classOf (WInteger _) = ClassName "Number"
+classOf (WBoolean _) = ClassName "Boolean"
 
 toList :: Stack a -> [a]
 toList stack =
@@ -128,35 +131,20 @@ compileMethodBody className selector methodBody =
     (ImplementedByBlock l_w) -> undefined
     (ImplementedByExpression w) -> undefined
 
+compileExpression :: WExpression -> [Instruction]
+compileExpression (WNumberLiteral i) = [Push $ WInteger i]
+compileExpression (WAddExpression receiver opAdd argument) =
+  compileExpression $ WMessageSend receiver (Ident $ nameFrom (WAddOpSelector opAdd)) [argument]
+compileExpression (WMessageSend receiver (Ident messageName) arguments) =
+  let numberOfArguments = length arguments
+  in
+    compileExpression receiver ++
+    concatMap compileExpression arguments ++
+    [ Send $ Selector messageName numberOfArguments ]
+compileExpression _ = undefined
+
 compileStatement :: WStatement -> [Instruction]
-compileStatement (TopLevelExpression (WNumberLiteral n)) = [ Push $ WInteger n ]
-compileStatement (TopLevelExpression (WAddExpression (WNumberLiteral n1) _ (WNumberLiteral n2))) =
-  [
-    Push $ WInteger n2,
-    Push $ WInteger n1,
-    Send $ Selector "+" 1
-  ]
-compileStatement (TopLevelExpression (WAddExpression _ _ _)) = undefined
-compileStatement (TopLevelExpression (WTry w l_w w4)) = undefined
-compileStatement (TopLevelExpression (WOrExpression w o w4)) = undefined
-compileStatement (TopLevelExpression (WAndExpression w o w4)) = undefined
-compileStatement (TopLevelExpression (WEqExpression w o w4)) = undefined
-compileStatement (TopLevelExpression (WCmpExpression w o w4)) = undefined
-compileStatement (TopLevelExpression (WMultExpression w o w4)) = undefined
-compileStatement (TopLevelExpression (WPowerExpression w o w4)) = undefined
-compileStatement (TopLevelExpression (WUnaryExpression o w)) = undefined
-compileStatement (TopLevelExpression (WPostfixExpression w o)) = undefined
-compileStatement (TopLevelExpression (WMessageSend w i l_w)) = undefined
-compileStatement (TopLevelExpression (WClosure w l_w)) = undefined
-compileStatement (TopLevelExpression (WIf w w3 w4)) = undefined
-compileStatement (TopLevelExpression (WObjectLiteral i w l_w l_w5))
-  = undefined
-compileStatement (TopLevelExpression WNullLiteral) = undefined
-compileStatement (TopLevelExpression WLiteralTrue) = undefined
-compileStatement (TopLevelExpression WLiteralFalse) = undefined
-compileStatement (TopLevelExpression WSelf) = undefined
-compileStatement (TopLevelExpression (WStringLiteral l_c)) = undefined
-compileStatement (TopLevelExpression (WVariable i)) = undefined
+compileStatement (TopLevelExpression e) = compileExpression e
 compileStatement (VarDeclaration w1) = undefined
 compileStatement (WReturn w1) = undefined
 compileStatement (WThrow w1) = undefined
@@ -170,6 +158,8 @@ runInstruction :: Instruction -> ExecutionM ()
 runInstruction (Push value) = push value
 
 runInstruction (Send selector) = do
+  let (Selector _ numberOfArguments) = selector
+  arguments <- popMany numberOfArguments
   receiver <- pop
   vmState <- State.get
   let wollokClass = lookupClassOf vmState receiver
@@ -177,9 +167,24 @@ runInstruction (Send selector) = do
   case wollokMethod of
     Custom _ -> undefined
     Native className' selector' -> do
+      runNativeMethod receiver arguments className' selector'
+
+runNativeMethod :: RuntimeValue -> [RuntimeValue] -> ClassName -> Selector -> ExecutionM ()
+runNativeMethod receiver arguments className selector =
+  case (className, selector) of
+    (ClassName "Number", Selector "+" 1) -> do
       let WInteger n1 = receiver
-      WInteger n2 <- pop
+      let [WInteger n2] = arguments
       push $ WInteger (n1 + n2)
+    (ClassName "Number", Selector "-" 1) -> do
+      let WInteger n1 = receiver
+      let [WInteger n2] = arguments
+      push $ WInteger (n1 - n2)
+    (ClassName "Number", Selector "between" 2) -> do
+      let WInteger self = receiver
+      let [WInteger minN, WInteger maxN] = arguments
+      push $ WBoolean $ (self >= minN) && (self <= maxN)
+    lookedUpMethod -> error $ "Couldn't find method: " ++ show lookedUpMethod
 
 lookupClassOf :: VmState -> RuntimeValue -> WollokCompiledClass
 lookupClassOf (VmState {..}) object =
@@ -191,6 +196,9 @@ lookupClassOf (VmState {..}) object =
 lookupMethod :: WollokCompiledClass -> Selector -> Maybe MethodImplementation
 lookupMethod (WollokCompiledClass methodDictionary) selector =
   Map.lookup selector methodDictionary
+
+popMany :: Int -> ExecutionM [StackFrame]
+popMany n = fmap reverse $ replicateM n pop
 
 pop :: ExecutionM StackFrame
 pop = do
