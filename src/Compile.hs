@@ -2,7 +2,6 @@
 {-# LANGUAGE PatternSynonyms #-}
 {-# OPTIONS_GHC -Wno-unused-matches #-}
 {-# OPTIONS_GHC -Wno-orphans #-}
-{-# OPTIONS_GHC -Wno-typed-holes #-}
 module Compile where
 
 import Parser.AbsGrammar
@@ -35,6 +34,7 @@ newtype ClassName = ClassName String
 
 data Instruction
   = Push RuntimeValue
+  | PushSelf
   | Send Selector
   deriving (Show, Eq)
 
@@ -43,7 +43,11 @@ data RuntimeValue
   | WBoolean Bool
   deriving (Show, Eq)
 
-type StackFrame = RuntimeValue
+data StackFrame = StackFrame
+  { valueStack :: Stack RuntimeValue
+  , self :: RuntimeValue
+  }
+  deriving (Show, Eq)
 
 data VmState = VmState
   { vmStack :: Stack StackFrame
@@ -68,7 +72,14 @@ toList stack =
       firstElement : toList stackWithoutElement
 
 vmInitialState :: CompiledClasses -> VmState
-vmInitialState compiledClasses = VmState { vmStack = stackNew, vmClassesBytecode = compiledClasses }
+vmInitialState compiledClasses =
+  VmState
+    { vmStack = emptyStackFrame
+    , vmClassesBytecode = compiledClasses
+    }
+
+emptyStackFrame :: Stack StackFrame
+emptyStackFrame = stackPush stackNew $ StackFrame { valueStack = stackNew, self = error "no self" }
 
 compile :: WFile -> WollokBytecode
 compile (WFile imports classes program) =
@@ -128,8 +139,8 @@ compileMethodBody :: ClassName -> Selector -> MethodBody -> MethodImplementation
 compileMethodBody className selector methodBody =
   case methodBody of
     ImplementedNatively -> Native className selector
+    (ImplementedByExpression e) -> Custom $ compileExpression e
     (ImplementedByBlock l_w) -> undefined
-    (ImplementedByExpression w) -> undefined
 
 compileExpression :: WExpression -> [Instruction]
 compileExpression (WNumberLiteral i) = [Push $ WInteger i]
@@ -141,7 +152,8 @@ compileExpression (WMessageSend receiver (Ident messageName) arguments) =
     compileExpression receiver ++
     concatMap compileExpression arguments ++
     [ Send $ Selector messageName numberOfArguments ]
-compileExpression _ = undefined
+compileExpression WSelf = [ PushSelf ]
+compileExpression x = error $ show x
 
 compileStatement :: WStatement -> [Instruction]
 compileStatement (TopLevelExpression e) = compileExpression e
@@ -157,6 +169,11 @@ run (WollokBytecode {..}) =
 runInstruction :: Instruction -> ExecutionM ()
 runInstruction (Push value) = push value
 
+runInstruction PushSelf = do
+  vmStack <- State.gets vmStack
+  let Just StackFrame {..} = stackPeek vmStack
+  push self
+
 runInstruction (Send selector) = do
   let (Selector _ numberOfArguments) = selector
   arguments <- popMany numberOfArguments
@@ -164,10 +181,17 @@ runInstruction (Send selector) = do
   vmState <- State.get
   let wollokClass = lookupClassOf vmState receiver
   let Just wollokMethod = lookupMethod wollokClass selector
+  pushStackFrame receiver
   case wollokMethod of
-    Custom _ -> undefined
+    Custom instructions -> do
+      forM_ instructions runInstruction
     Native className' selector' -> do
       runNativeMethod receiver arguments className' selector'
+
+pushStackFrame :: RuntimeValue -> ExecutionM ()
+pushStackFrame receiver = do
+  vmState <- State.get
+  State.put $ vmState { vmStack = stackPush (vmStack vmState) (StackFrame stackNew receiver) }
 
 runNativeMethod :: RuntimeValue -> [RuntimeValue] -> ClassName -> Selector -> ExecutionM ()
 runNativeMethod receiver arguments className selector =
@@ -197,17 +221,19 @@ lookupMethod :: WollokCompiledClass -> Selector -> Maybe MethodImplementation
 lookupMethod (WollokCompiledClass methodDictionary) selector =
   Map.lookup selector methodDictionary
 
-popMany :: Int -> ExecutionM [StackFrame]
+popMany :: Int -> ExecutionM [RuntimeValue]
 popMany n = fmap reverse $ replicateM n pop
 
-pop :: ExecutionM StackFrame
+pop :: ExecutionM RuntimeValue
 pop = do
   vmState <- State.get
-  let Just (restOfStack, value) = stackPop (vmStack vmState)
-  State.put $ vmState { vmStack = restOfStack }
+  let Just (restOfFrames, StackFrame valuesStack self) = stackPop (vmStack vmState)
+  let Just (restOfValues, value) = stackPop valuesStack
+  State.put $ vmState { vmStack = stackPush restOfFrames (StackFrame restOfValues self) }
   pure value
 
-push :: StackFrame -> ExecutionM ()
-push stackFrame = do
+push :: RuntimeValue -> ExecutionM ()
+push value = do
   vmState <- State.get
-  State.put $ vmState { vmStack = stackPush (vmStack vmState) stackFrame }
+  let Just (restOfFrames, StackFrame valuesStack self) = stackPop (vmStack vmState)
+  State.put $ vmState { vmStack = stackPush restOfFrames (StackFrame (stackPush valuesStack value) self) }

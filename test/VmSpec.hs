@@ -63,9 +63,31 @@ spec = do
             }
         |]
         `shouldBe` [WBoolean True]
+    it "can execute user-defined methods" $ do
+      stackAfterExecuting
+        [w|
+            class Number {
+                method twenty() = 20
+            }
+            program x {
+                10.twenty()
+            }
+        |]
+        `shouldBe` [WInteger 20]
+    it "self refers to the receiver of the message" $ do
+      stackAfterExecuting
+        [w|
+            class Number {
+                method myself() = self
+            }
+            program x {
+                10.myself()
+            }
+        |]
+        `shouldBe` [WInteger 10]
 
-stackAfterExecuting :: WFile -> [StackFrame]
-stackAfterExecuting = toList . vmStack . run . compile
+stackAfterExecuting :: WFile -> [RuntimeValue ]
+stackAfterExecuting = concatMap (toList . valueStack) . toList . vmStack . run . compile
 
 todoSpec :: IO ()
 todoSpec = error "Missing implementation"
