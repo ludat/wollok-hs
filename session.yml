@@ -1,0 +1,8 @@
+session_name: wlk
+start_directory: .
+windows:
+- window_name: command
+  layout: tiled
+  panes:
+    - watchexec -w Grammar.cf ./generate_parser.sh
+    - ghcid -c='stack repl --test --main-is wollok:test:wollok-test' --run='WollokSpecMain.main' --warnings
