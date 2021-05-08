@@ -63,7 +63,7 @@ spec = do
             }
         |]
         `shouldBe` [WBoolean True]
-    it "can execute user-defined methods" $ do
+    it "can execute user-defined methods defined by single expression" $ do
       stackAfterExecuting
         [w|
             class Number {
@@ -74,6 +74,32 @@ spec = do
             }
         |]
         `shouldBe` [WInteger 20]
+    it "can execute user-defined methods defined by block" $ do
+      stackAfterExecuting
+        [w|
+            class Number {
+                method twenty() {
+                  return 20
+                }
+            }
+            program x {
+                10.twenty()
+            }
+        |]
+        `shouldBe` [WInteger 20]
+    it "methods defined by block with no return, return null" $ do
+      stackAfterExecuting
+        [w|
+            class Number {
+                method twenty() {
+                  20
+                }
+            }
+            program x {
+                10.twenty()
+            }
+        |]
+        `shouldBe` [WNull]
     it "self refers to the receiver of the message" $ do
       stackAfterExecuting
         [w|
@@ -86,7 +112,7 @@ spec = do
         |]
         `shouldBe` [WInteger 10]
 
-stackAfterExecuting :: WFile -> [RuntimeValue ]
+stackAfterExecuting :: WFile -> [RuntimeValue]
 stackAfterExecuting = concatMap (toList . valueStack) . toList . vmStack . run . compile
 
 todoSpec :: IO ()
