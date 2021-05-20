@@ -98,6 +98,10 @@ WObjectLiteral. WExpression10 ::=
         [WMethodDeclaration]
     "}";
 
+WNew. WExpression10 ::= "new" Ident "(" [WNewParameter] ")";
+WNewParameter. WNewParameter ::= Ident "=" WExpression;
+separator WNewParameter ",";
+
 WNumberLiteral. WExpression10 ::= Integer;
 WNullLiteral. WExpression10 ::= "null";
 WLiteralTrue. WExpression10 ::= "true";

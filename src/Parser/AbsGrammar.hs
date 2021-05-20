@@ -94,6 +94,7 @@ data WExpression
     | WClosure WClosureParameters [WStatement]
     | WIf WExpression WBlockOrExpression WElse
     | WObjectLiteral Ident WSuperclassDeclaration [WVariableDeclaration] [WMethodDeclaration]
+    | WNew Ident [WNewParameter]
     | WNumberLiteral Integer
     | WNullLiteral
     | WLiteralTrue
@@ -145,5 +146,8 @@ data WClosureParameters = WNoParameters | WWithParameters [Ident]
   deriving (C.Eq, C.Ord, C.Show, C.Read, C.Data, C.Typeable, C.Generic)
 
 data WElse = WNoElse | WElse WBlockOrExpression
+  deriving (C.Eq, C.Ord, C.Show, C.Read, C.Data, C.Typeable, C.Generic)
+
+data WNewParameter = WNewParameter Ident WExpression
   deriving (C.Eq, C.Ord, C.Show, C.Read, C.Data, C.Typeable, C.Generic)
 

@@ -46,6 +46,9 @@ spec = do
           object console {
             method println(obj) native
           }
+          new X()
+          new X(var1 = 1, var2 = 1 + 1)
+          new X().m1()
         }
       |] `shouldBe`
         (WFile []
@@ -95,6 +98,12 @@ spec = do
                 WClosure WNoParameters [WReturn $ WNumberLiteral 7]
             , TopLevelExpression (WObjectLiteral (Ident "console") WNoSuperclass []
                 [ WMethodDeclaration (WSelector $ Ident "println") [Ident "obj"] ImplementedNatively])
+            , TopLevelExpression (WNew (Ident "X") [])
+            , TopLevelExpression (WNew (Ident "X")
+              [ WNewParameter (Ident "var1") (WNumberLiteral 1)
+              , WNewParameter (Ident "var2") (WAddExpression (WNumberLiteral 1) OpAdd1 (WNumberLiteral 1))
+              ])
+            , TopLevelExpression (WMessageSend (WNew (Ident "X") []) (Ident "m1") [])
             ]
           )
         )

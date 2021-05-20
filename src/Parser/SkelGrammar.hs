@@ -87,6 +87,7 @@ transWExpression x = case x of
   Parser.AbsGrammar.WClosure wclosureparameters wstatements -> failure x
   Parser.AbsGrammar.WIf wexpression wblockorexpression welse -> failure x
   Parser.AbsGrammar.WObjectLiteral ident wsuperclassdeclaration wvariabledeclarations wmethoddeclarations -> failure x
+  Parser.AbsGrammar.WNew ident wnewparameters -> failure x
   Parser.AbsGrammar.WNumberLiteral integer -> failure x
   Parser.AbsGrammar.WNullLiteral -> failure x
   Parser.AbsGrammar.WLiteralTrue -> failure x
@@ -155,4 +156,7 @@ transWElse :: Parser.AbsGrammar.WElse -> Result
 transWElse x = case x of
   Parser.AbsGrammar.WNoElse -> failure x
   Parser.AbsGrammar.WElse wblockorexpression -> failure x
+transWNewParameter :: Parser.AbsGrammar.WNewParameter -> Result
+transWNewParameter x = case x of
+  Parser.AbsGrammar.WNewParameter ident wexpression -> failure x
 

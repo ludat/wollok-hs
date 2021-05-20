@@ -218,6 +218,7 @@ instance Print Parser.AbsGrammar.WExpression where
     Parser.AbsGrammar.WClosure wclosureparameters wstatements -> prPrec i 10 (concatD [doc (showString "{"), prt 0 wclosureparameters, prt 0 wstatements, doc (showString "}")])
     Parser.AbsGrammar.WIf wexpression wblockorexpression welse -> prPrec i 10 (concatD [doc (showString "if"), doc (showString "("), prt 0 wexpression, doc (showString ")"), prt 0 wblockorexpression, prt 0 welse])
     Parser.AbsGrammar.WObjectLiteral id wsuperclassdeclaration wvariabledeclarations wmethoddeclarations -> prPrec i 10 (concatD [doc (showString "object"), prt 0 id, prt 0 wsuperclassdeclaration, doc (showString "{"), prt 0 wvariabledeclarations, prt 0 wmethoddeclarations, doc (showString "}")])
+    Parser.AbsGrammar.WNew id wnewparameters -> prPrec i 10 (concatD [doc (showString "new"), prt 0 id, doc (showString "("), prt 0 wnewparameters, doc (showString ")")])
     Parser.AbsGrammar.WNumberLiteral n -> prPrec i 10 (concatD [prt 0 n])
     Parser.AbsGrammar.WNullLiteral -> prPrec i 10 (concatD [doc (showString "null")])
     Parser.AbsGrammar.WLiteralTrue -> prPrec i 10 (concatD [doc (showString "true")])
@@ -311,4 +312,14 @@ instance Print Parser.AbsGrammar.WElse where
   prt i e = case e of
     Parser.AbsGrammar.WNoElse -> prPrec i 0 (concatD [])
     Parser.AbsGrammar.WElse wblockorexpression -> prPrec i 0 (concatD [doc (showString "else"), prt 0 wblockorexpression])
+
+instance Print Parser.AbsGrammar.WNewParameter where
+  prt i e = case e of
+    Parser.AbsGrammar.WNewParameter id wexpression -> prPrec i 0 (concatD [prt 0 id, doc (showString "="), prt 0 wexpression])
+  prtList _ [] = concatD []
+  prtList _ [x] = concatD [prt 0 x]
+  prtList _ (x:xs) = concatD [prt 0 x, doc (showString ","), prt 0 xs]
+
+instance Print [Parser.AbsGrammar.WNewParameter] where
+  prt = prtList
 
