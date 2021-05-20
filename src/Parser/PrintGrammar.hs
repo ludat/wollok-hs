@@ -188,7 +188,7 @@ instance Print Parser.AbsGrammar.WStatement where
 
 instance Print Parser.AbsGrammar.WVariableDeclaration where
   prt i e = case e of
-    Parser.AbsGrammar.WVariableDeclaration wvariabletype id wexpression -> prPrec i 0 (concatD [prt 0 wvariabletype, prt 0 id, doc (showString "="), prt 0 wexpression])
+    Parser.AbsGrammar.WVariableDeclaration wvariabletype id wvariablevalue -> prPrec i 0 (concatD [prt 0 wvariabletype, prt 0 id, prt 0 wvariablevalue])
   prtList _ [] = concatD []
   prtList _ (x:xs) = concatD [prt 0 x, prt 0 xs]
 
@@ -196,6 +196,11 @@ instance Print Parser.AbsGrammar.WVariableType where
   prt i e = case e of
     Parser.AbsGrammar.Var -> prPrec i 0 (concatD [doc (showString "var")])
     Parser.AbsGrammar.Const -> prPrec i 0 (concatD [doc (showString "const")])
+
+instance Print Parser.AbsGrammar.WVariableValue where
+  prt i e = case e of
+    Parser.AbsGrammar.WithInitialValue wexpression -> prPrec i 0 (concatD [doc (showString "="), prt 0 wexpression])
+    Parser.AbsGrammar.NoIntialValue -> prPrec i 0 (concatD [])
 
 instance Print Parser.AbsGrammar.WBlockOrExpression where
   prt i e = case e of

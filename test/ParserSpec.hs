@@ -53,7 +53,7 @@ spec = do
       |] `shouldBe`
         (WFile []
           [ WLibraryElement $ WClassDeclaration (Ident "X") WNoSuperclass
-            [ WVariableDeclaration Var (Ident "v1") (WNumberLiteral 2) ]
+            [ WVariableDeclaration Var (Ident "v1") $ WithInitialValue (WNumberLiteral 2) ]
             [ WMethodDeclaration (WSelector $ Ident "m1") ["x", "y"]
                 $ ImplementedByBlock [ TopLevelExpression $ WVariable "x" ]
             , WMethodDeclaration (WSelector $ Ident "m2") [] ImplementedNatively
@@ -62,8 +62,8 @@ spec = do
           , WLibraryElement $ WClassDeclaration (Ident "Y") (WSuperclass (Ident "X")) [] []
           ]
           (WProgram "testExpression"
-            [ VarDeclaration $ WVariableDeclaration Var "x" $ WNumberLiteral 42
-            , VarDeclaration $ WVariableDeclaration Const "nada" $ WNullLiteral
+            [ VarDeclaration $ WVariableDeclaration Var "x" $ WithInitialValue $ WNumberLiteral 42
+            , VarDeclaration $ WVariableDeclaration Const "nada" $ WithInitialValue $ WNullLiteral
             , TopLevelExpression WLiteralTrue
             , TopLevelExpression WLiteralFalse
             , TopLevelExpression $ WStringLiteral "un string"

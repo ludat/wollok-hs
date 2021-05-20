@@ -69,10 +69,13 @@ data WStatement
   deriving (C.Eq, C.Ord, C.Show, C.Read, C.Data, C.Typeable, C.Generic)
 
 data WVariableDeclaration
-    = WVariableDeclaration WVariableType Ident WExpression
+    = WVariableDeclaration WVariableType Ident WVariableValue
   deriving (C.Eq, C.Ord, C.Show, C.Read, C.Data, C.Typeable, C.Generic)
 
 data WVariableType = Var | Const
+  deriving (C.Eq, C.Ord, C.Show, C.Read, C.Data, C.Typeable, C.Generic)
+
+data WVariableValue = WithInitialValue WExpression | NoIntialValue
   deriving (C.Eq, C.Ord, C.Show, C.Read, C.Data, C.Typeable, C.Generic)
 
 data WBlockOrExpression

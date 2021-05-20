@@ -62,11 +62,15 @@ transWStatement x = case x of
   Parser.AbsGrammar.WAssignment ident wexpression -> failure x
 transWVariableDeclaration :: Parser.AbsGrammar.WVariableDeclaration -> Result
 transWVariableDeclaration x = case x of
-  Parser.AbsGrammar.WVariableDeclaration wvariabletype ident wexpression -> failure x
+  Parser.AbsGrammar.WVariableDeclaration wvariabletype ident wvariablevalue -> failure x
 transWVariableType :: Parser.AbsGrammar.WVariableType -> Result
 transWVariableType x = case x of
   Parser.AbsGrammar.Var -> failure x
   Parser.AbsGrammar.Const -> failure x
+transWVariableValue :: Parser.AbsGrammar.WVariableValue -> Result
+transWVariableValue x = case x of
+  Parser.AbsGrammar.WithInitialValue wexpression -> failure x
+  Parser.AbsGrammar.NoIntialValue -> failure x
 transWBlockOrExpression :: Parser.AbsGrammar.WBlockOrExpression -> Result
 transWBlockOrExpression x = case x of
   Parser.AbsGrammar.SingleExpression wstatement -> failure x

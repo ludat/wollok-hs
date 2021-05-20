@@ -14,6 +14,7 @@ import qualified Data.Map.Strict as Map
 import Control.Monad.Identity
 import Control.Monad.Cont
 import Data.List (intercalate)
+import Data.Maybe (fromJust)
 
 data WollokBytecode = WollokBytecode
   { programBytecode :: [Instruction]
@@ -22,7 +23,7 @@ data WollokBytecode = WollokBytecode
 
 type CompiledClasses = Map ClassName WollokCompiledClass
 
-newtype WollokCompiledClass = WollokCompiledClass (Map Selector MethodImplementation)
+data WollokCompiledClass = WollokCompiledClass (Map String (Maybe [Instruction])) (Map Selector MethodImplementation)
   deriving (Show, Eq)
 
 data MethodImplementation = Custom [Instruction] | Native ClassName Selector
@@ -40,6 +41,7 @@ data Instruction
   | Send Selector
   | Return
   | CreateInstance ClassName [String]
+  | PushInstanceVariable String
   deriving (Show, Eq)
 
 data RuntimeValue
@@ -117,8 +119,20 @@ compileClass
                                       superclassName
                                       instanceVariables
                                       methods))
-  = (className, WollokCompiledClass $ Map.fromList $ map (compileMethod className) methods)
-  where className = ClassName classIdentifier
+  = let
+      className = ClassName classIdentifier
+      compiledMethods = Map.fromList $ map (compileMethod className) methods
+      compiledInstanceVariables = Map.fromList $ map compileInstanceVariable instanceVariables
+    in
+      (className, WollokCompiledClass compiledInstanceVariables compiledMethods)
+    where
+      compileInstanceVariable :: WVariableDeclaration -> (String, Maybe [Instruction])
+      compileInstanceVariable
+        (WVariableDeclaration _ (Ident variableName) (WithInitialValue variableValueExpression))
+        = (variableName, Just $ compileExpression variableValueExpression)
+      compileInstanceVariable
+        (WVariableDeclaration _ (Ident variableName) NoIntialValue)
+        = undefined
 
 compileMethod :: ClassName -> WMethodDeclaration -> (Selector, MethodImplementation)
 compileMethod className (WMethodDeclaration name parameters body) =
@@ -172,6 +186,7 @@ compileExpression (WMessageSend receiver (Ident messageName) arguments) =
 compileExpression WSelf = [ PushSelf ]
 compileExpression (WNew (Ident classIdentifier) []) = [ CreateInstance (ClassName classIdentifier) [] ]
 compileExpression (WNew (Ident classIdentifier) arguments) = undefined
+compileExpression (WVariable (Ident variableName)) = [ PushInstanceVariable variableName ]
 
 compileExpression x = error $ show x
 
@@ -188,23 +203,30 @@ run (WollokBytecode {..}) =
     runIdentity $
     (`State.runStateT` vmInitialState classesBytecode) $
     (`runContT` pure) $
-    (forM_ programBytecode runInstruction)
+    runInstructions programBytecode
+
+runInstructions :: [Instruction] -> ExecutionM ()
+runInstructions = mapM_ runInstruction
+
+getSelf :: ExecutionM RuntimeValue
+getSelf = do
+  vmStack <- State.gets vmStack
+  let Just StackFrame {..} = stackPeek vmStack
+  pure self
 
 runInstruction :: Instruction -> ExecutionM ()
 runInstruction (Push value) =
   push value
 
 runInstruction PushSelf = do
-  vmStack <- State.gets vmStack
-  let Just StackFrame {..} = stackPeek vmStack
-  push self
+  self <- getSelf
+  push self -- TODO: Simplificar esto
 
 runInstruction (Send selector) = do
   let (Selector _ numberOfArguments) = selector
   arguments <- popMany numberOfArguments
   receiver <- pop
-  vmState <- State.get
-  let wollokClass = lookupClassOf vmState receiver
+  wollokClass <- lookupClassOf receiver
   let Just wollokMethod = lookupMethod wollokClass selector
   withNewStackFrame receiver $ do
     case wollokMethod of
@@ -220,7 +242,14 @@ runInstruction Return = do
   returnFunction stackFrame ()
 
 runInstruction (CreateInstance className constructorArgumentNames) = do
-  push $ WObject className Map.empty
+  (WollokCompiledClass instanceVariableDefinitions _) <- lookupClass className
+  cosa <- mapM ((\is -> runInstructions is >> pop) . fromJust) instanceVariableDefinitions
+  push $ WObject className $ cosa -- TODO: Simplificar esto
+
+runInstruction (PushInstanceVariable variableName) = do
+  self <- getSelf
+  let WObject _ instanceVariables = self
+  push $ fromJust $ Map.lookup variableName instanceVariables
 
 withNewStackFrame :: RuntimeValue -> ExecutionM () -> ExecutionM ()
 withNewStackFrame receiver actions = do
@@ -251,15 +280,19 @@ runNativeMethod receiver arguments className selector =
       push $ WBoolean $ (self >= minN) && (self <= maxN)
     lookedUpMethod -> error $ "Couldn't find method: " ++ show lookedUpMethod
 
-lookupClassOf :: VmState -> RuntimeValue -> WollokCompiledClass
-lookupClassOf (VmState {..}) object =
-  let className = classOf object in
-    case Map.lookup className vmClassesBytecode of
-      Just c -> c
-      Nothing -> error $ "Class not found: " ++ show className
+lookupClassOf :: RuntimeValue -> ExecutionM WollokCompiledClass
+lookupClassOf object = do
+  lookupClass $ classOf object
+
+lookupClass :: ClassName -> ExecutionM WollokCompiledClass
+lookupClass className = do
+  (VmState {..}) <- State.get
+  case Map.lookup className vmClassesBytecode of
+    Just c -> pure c
+    Nothing -> error $ "Class not found: " ++ show className
 
 lookupMethod :: WollokCompiledClass -> Selector -> Maybe MethodImplementation
-lookupMethod (WollokCompiledClass methodDictionary) selector =
+lookupMethod (WollokCompiledClass _ methodDictionary) selector =
   Map.lookup selector methodDictionary
 
 popMany :: Int -> ExecutionM [RuntimeValue]

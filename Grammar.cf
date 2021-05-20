@@ -44,9 +44,12 @@ WReturn. WStatement ::= "return" WExpression;
 WThrow. WStatement ::= "throw" WExpression;
 WAssignment. WStatement ::= Ident "=" WExpression;
 
-WVariableDeclaration. WVariableDeclaration ::= WVariableType Ident "=" WExpression;
+WVariableDeclaration. WVariableDeclaration ::= WVariableType Ident WVariableValue;
 Var. WVariableType ::= "var";
 Const. WVariableType ::= "const";
+
+WithInitialValue. WVariableValue ::= "=" WExpression;
+NoIntialValue. WVariableValue ::= ;
 
 SingleExpression. WBlockOrExpression ::= WStatement;
 Block. WBlockOrExpression ::= "{" [WStatement] "}";
