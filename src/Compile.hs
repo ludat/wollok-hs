@@ -9,7 +9,6 @@ import Data.Stack
 import Data.Function ( on )
 import Control.Monad.State.Strict
 import qualified Control.Monad.State.Strict as State
-import Control.Monad
 import Data.Map.Strict (Map)
 import qualified Data.Map.Strict as Map
 import Control.Monad.Identity
@@ -40,12 +39,14 @@ data Instruction
   | PushSelf
   | Send Selector
   | Return
+  | CreateInstance ClassName [String]
   deriving (Show, Eq)
 
 data RuntimeValue
   = WInteger Integer
   | WBoolean Bool
   | WNull
+  | WObject ClassName (Map String RuntimeValue)
   deriving (Show, Eq)
 
 data StackFrame = StackFrame
@@ -72,6 +73,7 @@ classOf :: RuntimeValue -> ClassName
 classOf (WInteger _) = ClassName "Number"
 classOf (WBoolean _) = ClassName "Boolean"
 classOf (WNull) = ClassName "Null"
+classOf (WObject className _) = className
 
 toList :: Stack a -> [a]
 toList stack =
@@ -168,6 +170,9 @@ compileExpression (WMessageSend receiver (Ident messageName) arguments) =
     concatMap compileExpression arguments ++
     [ Send $ Selector messageName numberOfArguments ]
 compileExpression WSelf = [ PushSelf ]
+compileExpression (WNew (Ident classIdentifier) []) = [ CreateInstance (ClassName classIdentifier) [] ]
+compileExpression (WNew (Ident classIdentifier) arguments) = undefined
+
 compileExpression x = error $ show x
 
 compileStatement :: WStatement -> [Instruction]
@@ -213,6 +218,9 @@ runInstruction Return = do
   VmState {..} <- State.get
   stackFrame <- currentStackFrame
   returnFunction stackFrame ()
+
+runInstruction (CreateInstance className constructorArgumentNames) = do
+  push $ WObject className Map.empty
 
 withNewStackFrame :: RuntimeValue -> ExecutionM () -> ExecutionM ()
 withNewStackFrame receiver actions = do

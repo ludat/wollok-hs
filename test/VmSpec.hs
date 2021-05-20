@@ -111,6 +111,17 @@ spec = do
             }
         |]
         `shouldBe` [WInteger 10]
+    it "initializes objects without instance variables" $ do
+      stackAfterExecuting
+        [w|
+            class Golondrina {
+                method energia() = 10
+            }
+            program x {
+                new Golondrina().energia()
+            }
+        |]
+        `shouldBe` [WInteger 10]
 
 stackAfterExecuting :: WFile -> [RuntimeValue]
 stackAfterExecuting = concatMap (toList . valueStack) . toList . vmStack . run . compile
