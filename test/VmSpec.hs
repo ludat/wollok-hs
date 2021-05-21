@@ -134,6 +134,50 @@ spec = do
             }
         |]
         `shouldBe` [WInteger 10]
+    it "initializes objects with multiple instance variables" $ do
+      stackAfterExecuting
+        [w|
+            class Golondrina {
+                var energia = 10
+                var alegria = 23
+                method energia() = energia
+                method alegria() = alegria
+            }
+            program x {
+                new Golondrina().energia()
+                new Golondrina().alegria()
+            }
+        |]
+        `shouldBe` [WInteger 23, WInteger 10]
+    it "initializes objects with instance variables with constructor arguments" $ do
+      stackAfterExecuting
+        [w|
+            class Golondrina {
+                var energia = 10
+                method energia() = energia
+            }
+            program x {
+                new Golondrina(energia = 4).energia()
+            }
+        |]
+        `shouldBe` [WInteger 4]
+    it "initializes objects with instance variables that have no default value \
+       \with constructor arguments" $ do
+      stackAfterExecuting
+        [w|
+            class Golondrina {
+                var energia
+                method energia() = energia
+            }
+            program x {
+                new Golondrina(energia = 4).energia()
+            }
+        |]
+        `shouldBe` [WInteger 4]
+    it "fails when an instance variable is not initialized after object creation" $ do
+      pendingWith "tendriamos que implementar excepciones primero o atrapar \
+                  \excepciones de haskell."
+
 
 stackAfterExecuting :: WFile -> [RuntimeValue]
 stackAfterExecuting = concatMap (toList . valueStack) . toList . vmStack . run . compile

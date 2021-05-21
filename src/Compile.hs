@@ -132,7 +132,7 @@ compileClass
         = (variableName, Just $ compileExpression variableValueExpression)
       compileInstanceVariable
         (WVariableDeclaration _ (Ident variableName) NoIntialValue)
-        = undefined
+        = (variableName, Nothing)
 
 compileMethod :: ClassName -> WMethodDeclaration -> (Selector, MethodImplementation)
 compileMethod className (WMethodDeclaration name parameters body) =
@@ -184,8 +184,17 @@ compileExpression (WMessageSend receiver (Ident messageName) arguments) =
     concatMap compileExpression arguments ++
     [ Send $ Selector messageName numberOfArguments ]
 compileExpression WSelf = [ PushSelf ]
-compileExpression (WNew (Ident classIdentifier) []) = [ CreateInstance (ClassName classIdentifier) [] ]
-compileExpression (WNew (Ident classIdentifier) arguments) = undefined
+compileExpression (WNew (Ident classIdentifier) arguments) =
+  let
+    compiledArguments =
+      concatMap (compileExpression . extractParameterExpression) arguments
+    compiledConstructorCall =
+      [ CreateInstance (ClassName classIdentifier) (fmap extractParameterIdent arguments) ]
+  in
+    compiledArguments ++ compiledConstructorCall
+  where
+    extractParameterIdent (WNewParameter (Ident argumentName) _) = argumentName
+    extractParameterExpression (WNewParameter _ expression) = expression
 compileExpression (WVariable (Ident variableName)) = [ PushInstanceVariable variableName ]
 
 compileExpression x = error $ show x
@@ -219,8 +228,7 @@ runInstruction (Push value) =
   push value
 
 runInstruction PushSelf = do
-  self <- getSelf
-  push self -- TODO: Simplificar esto
+  push =<< getSelf
 
 runInstruction (Send selector) = do
   let (Selector _ numberOfArguments) = selector
@@ -243,8 +251,17 @@ runInstruction Return = do
 
 runInstruction (CreateInstance className constructorArgumentNames) = do
   (WollokCompiledClass instanceVariableDefinitions _) <- lookupClass className
-  cosa <- mapM ((\is -> runInstructions is >> pop) . fromJust) instanceVariableDefinitions
-  push $ WObject className $ cosa -- TODO: Simplificar esto
+
+  constructorArgumentValues <- popMany $ length constructorArgumentNames
+  let constructorArguments = Map.fromList $ zip constructorArgumentNames (fmap (\value -> [Push value]) constructorArgumentValues)
+
+  let instanceVariablesInstructions =
+        Map.union constructorArguments $ Map.mapMaybe id instanceVariableDefinitions
+
+  instanceVariables <- forM instanceVariablesInstructions $ \is -> do
+    runInstructions is
+    pop
+  push $ WObject className instanceVariables
 
 runInstruction (PushInstanceVariable variableName) = do
   self <- getSelf

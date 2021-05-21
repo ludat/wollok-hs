@@ -1,10 +1,9 @@
 cabal-version: 1.12
 
--- This file has been generated from package.yaml by hpack version 0.33.0.
+-- This file has been generated from package.yaml by hpack version 0.34.4.
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 447911164742313dc954fa21fb2aa45292069587dc8f09bef04b44f0382a67c4
 
 name:           wollok
 version:        0.1.0.0
@@ -40,7 +39,15 @@ library
       Paths_wollok
   hs-source-dirs:
       src
-  default-extensions: QuasiQuotes LambdaCase OverloadedStrings DeriveGeneric TypeApplications RecordWildCards DerivingStrategies DerivingVia
+  default-extensions:
+      QuasiQuotes
+      LambdaCase
+      OverloadedStrings
+      DeriveGeneric
+      TypeApplications
+      RecordWildCards
+      DerivingStrategies
+      DerivingVia
   ghc-options: -Wall
   build-tools:
       alex
@@ -69,7 +76,15 @@ executable wollok-exe
       Paths_wollok
   hs-source-dirs:
       app
-  default-extensions: QuasiQuotes LambdaCase OverloadedStrings DeriveGeneric TypeApplications RecordWildCards DerivingStrategies DerivingVia
+  default-extensions:
+      QuasiQuotes
+      LambdaCase
+      OverloadedStrings
+      DeriveGeneric
+      TypeApplications
+      RecordWildCards
+      DerivingStrategies
+      DerivingVia
   ghc-options: -Wall -threaded -rtsopts -with-rtsopts=-N
   build-tools:
       alex
@@ -102,7 +117,15 @@ test-suite wollok-test
       Paths_wollok
   hs-source-dirs:
       test
-  default-extensions: QuasiQuotes LambdaCase OverloadedStrings DeriveGeneric TypeApplications RecordWildCards DerivingStrategies DerivingVia
+  default-extensions:
+      QuasiQuotes
+      LambdaCase
+      OverloadedStrings
+      DeriveGeneric
+      TypeApplications
+      RecordWildCards
+      DerivingStrategies
+      DerivingVia
   ghc-options: -Wall -threaded -rtsopts -with-rtsopts=-N -main-is WollokSpecMain
   build-tools:
       alex
