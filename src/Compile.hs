@@ -213,8 +213,15 @@ compileStatement
   (VarDeclaration (WVariableDeclaration Var
                                         (Ident variableName)
                                         NoIntialValue))
-  = undefined
-compileStatement (VarDeclaration (WVariableDeclaration Const i w4))
+  = [ Push WNull, DeclareLocalVariable variableName ]
+compileStatement
+  (VarDeclaration (WVariableDeclaration Const
+                                        (Ident variableName)
+                                        (WithInitialValue initialValueExpression)))
+    -- TODO: Eventually we'll need to remember that this was a const
+  = compileExpression initialValueExpression ++ [ DeclareLocalVariable variableName ]
+compileStatement
+  (VarDeclaration (WVariableDeclaration Const i NoIntialValue))
   = undefined
 compileStatement (WReturn e) = compileExpression e ++ [Return]
 compileStatement (WThrow w1) = undefined

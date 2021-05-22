@@ -209,6 +209,30 @@ spec = do
               }
           |]
           `shouldBe` [WInteger 2]
+      it "defines null as the value of uninitialized variables" $ do
+        stackAfterExecuting
+          [w|
+              program x {
+                  var y
+                  y
+              }
+          |]
+          `shouldBe` [WNull]
+      it "fails when a const is defined with no value" $ do
+        pendingWith "tendriamos que ver cómo hacer que el compilador notifique errores o atrapar \
+                    \excepciones de haskell."
+      it "fails when a const variable is assigned" $ do
+        pendingWith "tendriamos que ver cómo hacer que el compilador notifique errores o atrapar \
+                    \excepciones de haskell."
+      it "const variables with an initial value can be used" $ do
+        stackAfterExecuting
+          [w|
+              program x {
+                  const y = 3
+                  y
+              }
+          |]
+          `shouldBe` [WInteger 3]
 
 
 stackAfterExecuting :: WFile -> [RuntimeValue]
