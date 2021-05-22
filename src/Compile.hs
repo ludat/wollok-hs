@@ -41,7 +41,8 @@ data Instruction
   | Send Selector
   | Return
   | CreateInstance ClassName [String]
-  | PushInstanceVariable String
+  | PushVariable String
+  | DeclareLocalVariable String
   deriving (Show, Eq)
 
 data RuntimeValue
@@ -55,6 +56,7 @@ data StackFrame = StackFrame
   { valueStack :: Stack RuntimeValue
   , self :: RuntimeValue
   , returnFunction :: () -> ExecutionM ()
+  , localVariableBindings :: Map String RuntimeValue
   }
 
 instance Show StackFrame where
@@ -97,7 +99,8 @@ emptyStackFrame =
     StackFrame
     { valueStack = stackNew
     , self = error "no self"
-    , returnFunction = (error "no return in empty stackframe")
+    , returnFunction = error "no return in empty stackframe"
+    , localVariableBindings = Map.empty
     }
 
 compile :: WFile -> WollokBytecode
@@ -195,13 +198,24 @@ compileExpression (WNew (Ident classIdentifier) arguments) =
   where
     extractParameterIdent (WNewParameter (Ident argumentName) _) = argumentName
     extractParameterExpression (WNewParameter _ expression) = expression
-compileExpression (WVariable (Ident variableName)) = [ PushInstanceVariable variableName ]
+compileExpression (WVariable (Ident variableName)) = [ PushVariable variableName ]
 
 compileExpression x = error $ show x
 
 compileStatement :: WStatement -> [Instruction]
 compileStatement (TopLevelExpression e) = compileExpression e
-compileStatement (VarDeclaration w1) = undefined
+compileStatement
+  (VarDeclaration (WVariableDeclaration Var
+                                        (Ident variableName)
+                                        (WithInitialValue initialValueExpression)))
+  = compileExpression initialValueExpression ++ [ DeclareLocalVariable variableName ]
+compileStatement
+  (VarDeclaration (WVariableDeclaration Var
+                                        (Ident variableName)
+                                        NoIntialValue))
+  = undefined
+compileStatement (VarDeclaration (WVariableDeclaration Const i w4))
+  = undefined
 compileStatement (WReturn e) = compileExpression e ++ [Return]
 compileStatement (WThrow w1) = undefined
 compileStatement (WAssignment i w2) = undefined
@@ -263,17 +277,45 @@ runInstruction (CreateInstance className constructorArgumentNames) = do
     pop
   push $ WObject className instanceVariables
 
-runInstruction (PushInstanceVariable variableName) = do
-  self <- getSelf
-  let WObject _ instanceVariables = self
-  push $ fromJust $ Map.lookup variableName instanceVariables
+runInstruction (PushVariable variableName) = do
+  variableValue <- lookupVariable variableName
+  push variableValue
+
+runInstruction (DeclareLocalVariable variableName) = do
+  intialValue <- pop
+  declareLocalVariable variableName intialValue
+
+lookupVariable :: String -> ExecutionM RuntimeValue
+lookupVariable variableName = do
+  maybeLocalVariable <- lookupLocalVariable variableName
+  case maybeLocalVariable of
+    Just localVariableValue -> do
+      pure localVariableValue
+    Nothing -> do
+      self <- getSelf
+      let WObject _ instanceVariables = self
+      pure $ fromJust $ Map.lookup variableName instanceVariables
+
+declareLocalVariable :: String -> RuntimeValue -> ExecutionM ()
+declareLocalVariable name value = do
+  vmState <- State.get
+  let Just (restOfFrames, StackFrame valuesStack self returnFunction localVariables) = stackPop (vmStack vmState)
+  State.put $ vmState
+    { vmStack = stackPush restOfFrames (StackFrame valuesStack self returnFunction (Map.insert name value localVariables))
+    }
+
+lookupLocalVariable :: String -> ExecutionM (Maybe RuntimeValue)
+lookupLocalVariable name = do
+  vmState <- State.get
+  let Just (StackFrame _ _ _ localVariables) = stackPeek (vmStack vmState)
+  pure (Map.lookup name localVariables)
 
 withNewStackFrame :: RuntimeValue -> ExecutionM () -> ExecutionM ()
 withNewStackFrame receiver actions = do
   vmStateInicial <- State.get
   callCC $ \exit -> do
     State.put $ vmStateInicial
-      { vmStack = stackPush (vmStack vmStateInicial) (StackFrame stackNew receiver exit)
+      { vmStack = stackPush (vmStack vmStateInicial) (StackFrame stackNew receiver exit Map.empty)
       }
     actions
   returnValue <- pop
@@ -323,16 +365,18 @@ currentStackFrame = do
 
 pop :: ExecutionM RuntimeValue
 pop = do
-  vmState <- State.get
-  let Just (restOfFrames, StackFrame valuesStack self returnFunction) = stackPop (vmStack vmState)
-  let Just (restOfValues, value) = stackPop valuesStack
-  State.put $ vmState { vmStack = stackPush restOfFrames (StackFrame restOfValues self returnFunction) }
-  pure value
+  modifyValueStack $ \valuesStack -> fromJust $ stackPop valuesStack
 
 push :: RuntimeValue -> ExecutionM ()
 push value = do
+  modifyValueStack $ \valuesStack -> (stackPush valuesStack value, ())
+
+modifyValueStack :: (Stack RuntimeValue -> (Stack RuntimeValue, a)) -> ExecutionM a
+modifyValueStack modifyFunction = do
   vmState <- State.get
-  let Just (restOfFrames, StackFrame valuesStack self returnFunction) = stackPop (vmStack vmState)
+  let Just (restOfFrames, StackFrame valuesStack self returnFunction localVariables) = stackPop (vmStack vmState)
+  let (updatedValues, result) = modifyFunction valuesStack
   State.put $ vmState
-    { vmStack = stackPush restOfFrames (StackFrame (stackPush valuesStack value) self returnFunction)
+    { vmStack = stackPush restOfFrames (StackFrame updatedValues self returnFunction localVariables)
     }
+  pure result

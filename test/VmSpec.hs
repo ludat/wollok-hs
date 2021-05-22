@@ -181,6 +181,34 @@ spec = do
       it "fails when an instance variable is not initialized after object creation" $ do
         pendingWith "tendriamos que implementar excepciones primero o atrapar \
                     \excepciones de haskell."
+    describe "local variables" $ do
+      it "can obtain the value of a local variable defined in the same context" $ do
+        stackAfterExecuting
+          [w|
+              class Number {
+                  method +(other) native
+              }
+              program x {
+                  var n = 2
+                  n + 1
+              }
+          |]
+          `shouldBe` [WInteger 3]
+      it "shadows instance variables when there is a local variable with the same name" $ do
+        stackAfterExecuting
+          [w|
+              class Golondrina {
+                  var energia
+                  method energia() {
+                      var energia = 2
+                      return energia
+                  }
+              }
+              program x {
+                  new Golondrina(energia = 4).energia()
+              }
+          |]
+          `shouldBe` [WInteger 2]
 
 
 stackAfterExecuting :: WFile -> [RuntimeValue]
