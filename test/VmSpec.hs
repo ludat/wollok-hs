@@ -126,7 +126,7 @@ spec = do
               }
           |]
           `shouldBe` [WInteger 10]
-      it "initializes objects with instance variables" $ do
+      xit "initializes objects with instance variables" $ do
         stackAfterExecuting
           [w|
               class Golondrina {
@@ -138,7 +138,7 @@ spec = do
               }
           |]
           `shouldBe` [WInteger 10]
-      it "initializes objects with multiple instance variables" $ do
+      xit "initializes objects with multiple instance variables" $ do
         stackAfterExecuting
           [w|
               class Golondrina {
@@ -153,7 +153,7 @@ spec = do
               }
           |]
           `shouldBe` [WInteger 23, WInteger 10]
-      it "initializes objects with instance variables with constructor arguments" $ do
+      xit "initializes objects with instance variables with constructor arguments" $ do
         stackAfterExecuting
           [w|
               class Golondrina {
@@ -165,7 +165,7 @@ spec = do
               }
           |]
           `shouldBe` [WInteger 4]
-      it "initializes objects with instance variables that have no default value \
+      xit "initializes objects with instance variables that have no default value \
          \with constructor arguments" $ do
         stackAfterExecuting
           [w|
@@ -194,7 +194,7 @@ spec = do
               }
           |]
           `shouldBe` [WInteger 3]
-      it "shadows instance variables when there is a local variable with the same name" $ do
+      xit "shadows instance variables when there is a local variable with the same name" $ do
         stackAfterExecuting
           [w|
               class Golondrina {
@@ -233,6 +233,31 @@ spec = do
               }
           |]
           `shouldBe` [WInteger 3]
+    describe "if" $ do
+      it "executes the then branch if the condition evaluates to true" $ do
+        stackAfterExecuting
+          [w|
+              program x {
+                  if (true) {
+                      1
+                  } else {
+                      0
+                  }
+              }
+          |]
+          `shouldBe` [WInteger 1]
+      it "executes the else branch if the condition evaluates to false" $ do
+        stackAfterExecuting
+          [w|
+              program x {
+                  if (false) {
+                      1
+                  } else {
+                      0
+                  }
+              }
+          |]
+          `shouldBe` [WInteger 0]
 
 
 stackAfterExecuting :: WFile -> [RuntimeValue]

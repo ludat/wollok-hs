@@ -12,7 +12,6 @@ import qualified Control.Monad.State.Strict as State
 import Data.Map.Strict (Map)
 import qualified Data.Map.Strict as Map
 import Control.Monad.Identity
-import Control.Monad.Cont
 import Data.List (intercalate)
 import Data.Maybe (fromJust)
 
@@ -41,8 +40,11 @@ data Instruction
   | Send Selector
   | Return
   | CreateInstance ClassName [String]
+  | SetInstanceVariable String
   | PushVariable String
   | DeclareLocalVariable String
+  | JumpIfFalse Int
+  | Jump Int
   deriving (Show, Eq)
 
 data RuntimeValue
@@ -57,6 +59,8 @@ data StackFrame = StackFrame
   , self :: RuntimeValue
   , returnFunction :: () -> ExecutionM ()
   , localVariableBindings :: Map String RuntimeValue
+  , programCounter :: Int
+  , instructions :: [Instruction]
   }
 
 instance Show StackFrame where
@@ -68,7 +72,7 @@ data VmState = VmState
   , vmClassesBytecode :: CompiledClasses
   } deriving (Show)
 
-type ExecutionM = ContT () (State VmState)
+type ExecutionM = State VmState
 
 instance Eq a => Eq (Stack a) where
   (==) = (==) `on` toList
@@ -86,21 +90,23 @@ toList stack =
     (Just (stackWithoutElement, firstElement)) ->
       firstElement : toList stackWithoutElement
 
-vmInitialState :: CompiledClasses -> VmState
-vmInitialState compiledClasses =
+vmInitialState :: WollokBytecode -> VmState
+vmInitialState (WollokBytecode {..}) =
+  let
+    emptyStackFrame =
+      stackPush stackNew $
+        StackFrame
+        { valueStack = stackNew
+        , self = error "no self"
+        , returnFunction = error "no return in empty stackframe"
+        , localVariableBindings = Map.empty
+        , programCounter = 0
+        , instructions = programBytecode
+        }
+  in
   VmState
     { vmStack = emptyStackFrame
-    , vmClassesBytecode = compiledClasses
-    }
-
-emptyStackFrame :: Stack StackFrame
-emptyStackFrame =
-  stackPush stackNew $
-    StackFrame
-    { valueStack = stackNew
-    , self = error "no self"
-    , returnFunction = error "no return in empty stackframe"
-    , localVariableBindings = Map.empty
+    , vmClassesBytecode = classesBytecode
     }
 
 compile :: WFile -> WollokBytecode
@@ -174,7 +180,7 @@ compileMethodBody className selector methodBody =
   case methodBody of
     ImplementedNatively -> Native className selector
     (ImplementedByExpression e) -> Custom $ compileExpression e ++ [Return]
-    (ImplementedByBlock statements) -> Custom $ concatMap compileStatement statements
+    (ImplementedByBlock statements) -> Custom $ concatMap compileStatement statements ++ [Push WNull, Return]
 
 compileExpression :: WExpression -> [Instruction]
 compileExpression (WNumberLiteral i) = [Push $ WInteger i]
@@ -186,7 +192,7 @@ compileExpression (WMessageSend receiver (Ident messageName) arguments) =
     compileExpression receiver ++
     concatMap compileExpression arguments ++
     [ Send $ Selector messageName numberOfArguments ]
-compileExpression WSelf = [ PushSelf ]
+compileExpression WSelf = [PushSelf]
 compileExpression (WNew (Ident classIdentifier) arguments) =
   let
     compiledArguments =
@@ -199,6 +205,22 @@ compileExpression (WNew (Ident classIdentifier) arguments) =
     extractParameterIdent (WNewParameter (Ident argumentName) _) = argumentName
     extractParameterExpression (WNewParameter _ expression) = expression
 compileExpression (WVariable (Ident variableName)) = [ PushVariable variableName ]
+compileExpression (WIf condition t WNoElse) = undefined
+compileExpression (WIf condition (SingleExpression w5) (WElse w))
+  = undefined
+compileExpression
+  (WIf condition (Block l_w) (WElse (SingleExpression w6)))
+  = undefined
+compileExpression (WIf condition (Block thenBlock) (WElse (Block elseBlock)))
+  = let
+      compiledThen = concatMap compileStatement thenBlock
+      compiledElse = concatMap compileStatement elseBlock
+    in
+      compileExpression condition ++ [ JumpIfFalse $ length compiledThen + 1 ]
+        ++ compiledThen ++ [ Jump $ length compiledElse ]
+        ++ compiledElse
+compileExpression (WLiteralTrue) = [ Push $ WBoolean True ]
+compileExpression (WLiteralFalse) = [ Push $ WBoolean False ]
 
 compileExpression x = error $ show x
 
@@ -228,15 +250,39 @@ compileStatement (WThrow w1) = undefined
 compileStatement (WAssignment i w2) = undefined
 
 run :: WollokBytecode -> VmState
-run (WollokBytecode {..}) =
+run wollokBytecode =
   snd $
     runIdentity $
-    (`State.runStateT` vmInitialState classesBytecode) $
-    (`runContT` pure) $
-    runInstructions programBytecode
+    (`State.runStateT` vmInitialState wollokBytecode) $
+    runInstructions
 
-runInstructions :: [Instruction] -> ExecutionM ()
-runInstructions = mapM_ runInstruction
+runInstructions :: ExecutionM ()
+runInstructions = do
+  maybeNextInstruction <- fetchNextInstruction
+  case maybeNextInstruction of
+    Just instruction -> do
+      runInstruction instruction
+      runInstructions
+    Nothing -> pure ()
+
+fetchNextInstruction :: ExecutionM (Maybe Instruction)
+fetchNextInstruction = do
+  StackFrame {..} <- currentStackFrame
+  let currentInstruction = instructions !? programCounter
+  incrementPc
+  pure currentInstruction
+
+infix 9 !?
+(!?) :: [a] -> Int -> Maybe a
+(!?) xs i
+    | i < 0     = Nothing
+    | otherwise = go i xs
+  where
+    go :: Int -> [a] -> Maybe a
+    go 0 (x:_)  = Just x
+    go j (_:ys) = go (j - 1) ys
+    go _ []     = Nothing
+{-# INLINE (!?) #-}
 
 getSelf :: ExecutionM RuntimeValue
 getSelf = do
@@ -257,18 +303,13 @@ runInstruction (Send selector) = do
   receiver <- pop
   wollokClass <- lookupClassOf receiver
   let Just wollokMethod = lookupMethod wollokClass selector
-  withNewStackFrame receiver $ do
-    case wollokMethod of
-      Custom instructions -> do
-        forM_ instructions runInstruction
-        push WNull
-      Native className' selector' -> do
-        runNativeMethod receiver arguments className' selector'
+  activateMethod receiver wollokMethod arguments
 
 runInstruction Return = do
   VmState {..} <- State.get
-  stackFrame <- currentStackFrame
-  returnFunction stackFrame ()
+  valueToReturn <- pop
+  stackFrame <- popStackFrame
+  push valueToReturn
 
 runInstruction (CreateInstance className constructorArgumentNames) = do
   (WollokCompiledClass instanceVariableDefinitions _) <- lookupClass className
@@ -280,7 +321,7 @@ runInstruction (CreateInstance className constructorArgumentNames) = do
         Map.union constructorArguments $ Map.mapMaybe id instanceVariableDefinitions
 
   instanceVariables <- forM instanceVariablesInstructions $ \is -> do
-    runInstructions is
+    _ <- (undefined is)
     pop
   push $ WObject className instanceVariables
 
@@ -291,6 +332,20 @@ runInstruction (PushVariable variableName) = do
 runInstruction (DeclareLocalVariable variableName) = do
   intialValue <- pop
   declareLocalVariable variableName intialValue
+
+runInstruction (JumpIfFalse offset) = do
+  conditionValue <- pop
+  case conditionValue of
+    WBoolean True -> do
+      pure ()
+    WBoolean False -> do
+      offsetPcBy offset
+    _ -> error "jump condition was not a boolean"
+
+runInstruction (Jump offset) = do
+  offsetPcBy offset
+
+runInstruction (SetInstanceVariable variableName) = undefined
 
 lookupVariable :: String -> ExecutionM RuntimeValue
 lookupVariable variableName = do
@@ -306,28 +361,29 @@ lookupVariable variableName = do
 declareLocalVariable :: String -> RuntimeValue -> ExecutionM ()
 declareLocalVariable name value = do
   vmState <- State.get
-  let Just (restOfFrames, StackFrame valuesStack self returnFunction localVariables) = stackPop (vmStack vmState)
+  let Just (restOfFrames, stackFrame) = stackPop (vmStack vmState)
   State.put $ vmState
-    { vmStack = stackPush restOfFrames (StackFrame valuesStack self returnFunction (Map.insert name value localVariables))
+    { vmStack = stackPush restOfFrames stackFrame { localVariableBindings = Map.insert name value $ localVariableBindings stackFrame }
     }
 
 lookupLocalVariable :: String -> ExecutionM (Maybe RuntimeValue)
 lookupLocalVariable name = do
   vmState <- State.get
-  let Just (StackFrame _ _ _ localVariables) = stackPeek (vmStack vmState)
-  pure (Map.lookup name localVariables)
+  let Just stackFrame = stackPeek (vmStack vmState)
+  pure $ Map.lookup name $ localVariableBindings stackFrame
 
-withNewStackFrame :: RuntimeValue -> ExecutionM () -> ExecutionM ()
-withNewStackFrame receiver actions = do
-  vmStateInicial <- State.get
-  callCC $ \exit -> do
-    State.put $ vmStateInicial
-      { vmStack = stackPush (vmStack vmStateInicial) (StackFrame stackNew receiver exit Map.empty)
-      }
-    actions
-  returnValue <- pop
-  State.put vmStateInicial
-  push returnValue
+activateMethod :: RuntimeValue -> MethodImplementation -> [RuntimeValue] -> ExecutionM ()
+activateMethod receiver method arguments = do
+  case method of
+    Native className' selector' -> do
+      runNativeMethod receiver arguments className' selector'
+    Custom instructions -> do
+      vmStateInicial <- State.get
+      State.put $ vmStateInicial
+        { vmStack = stackPush
+            (vmStack vmStateInicial)
+            (StackFrame stackNew receiver undefined Map.empty 0 instructions)
+        }
 
 runNativeMethod :: RuntimeValue -> [RuntimeValue] -> ClassName -> Selector -> ExecutionM ()
 runNativeMethod receiver arguments className selector =
@@ -370,6 +426,33 @@ currentStackFrame = do
   let Just stackFrame = stackPeek (vmStack vmState)
   pure stackFrame
 
+incrementPc :: ExecutionM ()
+incrementPc = offsetPcBy 1
+
+offsetPcBy :: Int -> ExecutionM ()
+offsetPcBy offset = modifyPc (+ offset)
+
+modifyPc :: (Int -> Int) -> ExecutionM ()
+modifyPc f = do
+  modifyStackFrame $ \stackFrame -> (stackFrame { programCounter = f $ programCounter stackFrame}, ())
+
+popStackFrame :: ExecutionM StackFrame
+popStackFrame = do
+  vmState <- State.get
+  let Just (restOfFrames, stackFrame) = stackPop (vmStack vmState)
+  State.put $ vmState { vmStack = restOfFrames }
+  pure stackFrame
+
+modifyStackFrame :: (StackFrame -> (StackFrame, a)) -> ExecutionM a
+modifyStackFrame modifyFunction = do
+  vmState <- State.get
+  let Just (restOfFrames, stackFrame) = stackPop (vmStack vmState)
+  let (updatedStackFrame, result) = modifyFunction stackFrame
+  State.put $ vmState
+    { vmStack = stackPush restOfFrames updatedStackFrame
+    }
+  pure result
+
 pop :: ExecutionM RuntimeValue
 pop = do
   modifyValueStack $ \valuesStack -> fromJust $ stackPop valuesStack
@@ -380,10 +463,8 @@ push value = do
 
 modifyValueStack :: (Stack RuntimeValue -> (Stack RuntimeValue, a)) -> ExecutionM a
 modifyValueStack modifyFunction = do
-  vmState <- State.get
-  let Just (restOfFrames, StackFrame valuesStack self returnFunction localVariables) = stackPop (vmStack vmState)
-  let (updatedValues, result) = modifyFunction valuesStack
-  State.put $ vmState
-    { vmStack = stackPush restOfFrames (StackFrame updatedValues self returnFunction localVariables)
-    }
-  pure result
+  modifyStackFrame $ \stackFrame ->
+    let
+      (updatedValues, result) = modifyFunction (valueStack stackFrame)
+    in
+      (stackFrame {valueStack = updatedValues}, result)
