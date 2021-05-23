@@ -126,7 +126,7 @@ spec = do
               }
           |]
           `shouldBe` [WInteger 10]
-      xit "initializes objects with instance variables" $ do
+      it "initializes objects with instance variables" $ do
         stackAfterExecuting
           [w|
               class Golondrina {
@@ -138,7 +138,7 @@ spec = do
               }
           |]
           `shouldBe` [WInteger 10]
-      xit "initializes objects with multiple instance variables" $ do
+      it "initializes objects with multiple instance variables" $ do
         stackAfterExecuting
           [w|
               class Golondrina {
@@ -153,7 +153,7 @@ spec = do
               }
           |]
           `shouldBe` [WInteger 23, WInteger 10]
-      xit "initializes objects with instance variables with constructor arguments" $ do
+      it "initializes objects with instance variables with constructor arguments" $ do
         stackAfterExecuting
           [w|
               class Golondrina {
@@ -165,7 +165,7 @@ spec = do
               }
           |]
           `shouldBe` [WInteger 4]
-      xit "initializes objects with instance variables that have no default value \
+      it "initializes objects with instance variables that have no default value \
          \with constructor arguments" $ do
         stackAfterExecuting
           [w|
@@ -194,7 +194,7 @@ spec = do
               }
           |]
           `shouldBe` [WInteger 3]
-      xit "shadows instance variables when there is a local variable with the same name" $ do
+      it "shadows instance variables when there is a local variable with the same name" $ do
         stackAfterExecuting
           [w|
               class Golondrina {

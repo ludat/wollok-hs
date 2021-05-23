@@ -57,7 +57,6 @@ data RuntimeValue
 data StackFrame = StackFrame
   { valueStack :: Stack RuntimeValue
   , self :: RuntimeValue
-  , returnFunction :: () -> ExecutionM ()
   , localVariableBindings :: Map String RuntimeValue
   , programCounter :: Int
   , instructions :: [Instruction]
@@ -98,7 +97,6 @@ vmInitialState (WollokBytecode {..}) =
         StackFrame
         { valueStack = stackNew
         , self = error "no self"
-        , returnFunction = error "no return in empty stackframe"
         , localVariableBindings = Map.empty
         , programCounter = 0
         , instructions = programBytecode
@@ -317,13 +315,19 @@ runInstruction (CreateInstance className constructorArgumentNames) = do
   constructorArgumentValues <- popMany $ length constructorArgumentNames
   let constructorArguments = Map.fromList $ zip constructorArgumentNames (fmap (\value -> [Push value]) constructorArgumentValues)
 
-  let instanceVariablesInstructions =
+  let instanceVariablesInstructions = Map.toList $
         Map.union constructorArguments $ Map.mapMaybe id instanceVariableDefinitions
 
-  instanceVariables <- forM instanceVariablesInstructions $ \is -> do
-    _ <- (undefined is)
-    pop
-  push $ WObject className instanceVariables
+  let newObject = WObject className Map.empty
+
+  let initializeInstructions =
+        concatMap
+          (\(name, instructions) -> instructions ++ [SetInstanceVariable name])
+          instanceVariablesInstructions
+        ++ [PushSelf, Return]
+
+  pushNewStackFrame newObject initializeInstructions
+
 
 runInstruction (PushVariable variableName) = do
   variableValue <- lookupVariable variableName
@@ -345,7 +349,15 @@ runInstruction (JumpIfFalse offset) = do
 runInstruction (Jump offset) = do
   offsetPcBy offset
 
-runInstruction (SetInstanceVariable variableName) = undefined
+runInstruction (SetInstanceVariable variableName) = do
+  newValue <- pop
+
+  self <- getSelf
+  let WObject className instanceVariables = self
+
+  let newSelf = WObject className $ Map.insert variableName newValue instanceVariables
+
+  modifyStackFrame $ \stackFrame -> (stackFrame { self = newSelf }, ())
 
 lookupVariable :: String -> ExecutionM RuntimeValue
 lookupVariable variableName = do
@@ -378,12 +390,16 @@ activateMethod receiver method arguments = do
     Native className' selector' -> do
       runNativeMethod receiver arguments className' selector'
     Custom instructions -> do
-      vmStateInicial <- State.get
-      State.put $ vmStateInicial
-        { vmStack = stackPush
-            (vmStack vmStateInicial)
-            (StackFrame stackNew receiver undefined Map.empty 0 instructions)
-        }
+      pushNewStackFrame receiver instructions
+
+pushNewStackFrame :: RuntimeValue -> [Instruction] -> ExecutionM ()
+pushNewStackFrame self instructions = do
+  vmStateInicial <- State.get
+  State.put $ vmStateInicial
+    { vmStack = stackPush
+        (vmStack vmStateInicial)
+        (StackFrame stackNew self Map.empty 0 instructions)
+    }
 
 runNativeMethod :: RuntimeValue -> [RuntimeValue] -> ClassName -> Selector -> ExecutionM ()
 runNativeMethod receiver arguments className selector =
