@@ -78,12 +78,12 @@ data WVariableType = Var | Const
 data WVariableValue = WithInitialValue WExpression | NoIntialValue
   deriving (C.Eq, C.Ord, C.Show, C.Read, C.Data, C.Typeable, C.Generic)
 
-data WBlockOrExpression
+data WBlockOrStatement
     = SingleExpression WStatement | Block [WStatement]
   deriving (C.Eq, C.Ord, C.Show, C.Read, C.Data, C.Typeable, C.Generic)
 
 data WExpression
-    = WTry WBlockOrExpression [WCatch] WThenAlways
+    = WTry WBlockOrStatement [WCatch] WThenAlways
     | WOrExpression WExpression OpOr WExpression
     | WAndExpression WExpression OpAnd WExpression
     | WEqExpression WExpression OpEq WExpression
@@ -95,7 +95,7 @@ data WExpression
     | WPostfixExpression WExpression OpPostfix
     | WMessageSend WExpression Ident [WExpression]
     | WClosure WClosureParameters [WStatement]
-    | WIf WExpression WBlockOrExpression WElse
+    | WIf WExpression WBlockOrStatement WElse
     | WObjectLiteral Ident WSuperclassDeclaration [WVariableDeclaration] [WMethodDeclaration]
     | WNew Ident [WNewParameter]
     | WNumberLiteral Integer
@@ -107,11 +107,11 @@ data WExpression
     | WVariable Ident
   deriving (C.Eq, C.Ord, C.Show, C.Read, C.Data, C.Typeable, C.Generic)
 
-data WCatch = WCatch Ident ExceptionType WBlockOrExpression
+data WCatch = WCatch Ident ExceptionType WBlockOrStatement
   deriving (C.Eq, C.Ord, C.Show, C.Read, C.Data, C.Typeable, C.Generic)
 
 data WThenAlways
-    = WThenAlwaysProvided WBlockOrExpression | WNoThenAlways
+    = WThenAlwaysProvided WBlockOrStatement | WNoThenAlways
   deriving (C.Eq, C.Ord, C.Show, C.Read, C.Data, C.Typeable, C.Generic)
 
 data ExceptionType
@@ -148,7 +148,7 @@ data OpPostfix = OpPostfix1 | OpPostfix2
 data WClosureParameters = WNoParameters | WWithParameters [Ident]
   deriving (C.Eq, C.Ord, C.Show, C.Read, C.Data, C.Typeable, C.Generic)
 
-data WElse = WNoElse | WElse WBlockOrExpression
+data WElse = WNoElse | WElse WBlockOrStatement
   deriving (C.Eq, C.Ord, C.Show, C.Read, C.Data, C.Typeable, C.Generic)
 
 data WNewParameter = WNewParameter Ident WExpression

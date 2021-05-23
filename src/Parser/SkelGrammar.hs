@@ -71,13 +71,13 @@ transWVariableValue :: Parser.AbsGrammar.WVariableValue -> Result
 transWVariableValue x = case x of
   Parser.AbsGrammar.WithInitialValue wexpression -> failure x
   Parser.AbsGrammar.NoIntialValue -> failure x
-transWBlockOrExpression :: Parser.AbsGrammar.WBlockOrExpression -> Result
-transWBlockOrExpression x = case x of
+transWBlockOrStatement :: Parser.AbsGrammar.WBlockOrStatement -> Result
+transWBlockOrStatement x = case x of
   Parser.AbsGrammar.SingleExpression wstatement -> failure x
   Parser.AbsGrammar.Block wstatements -> failure x
 transWExpression :: Parser.AbsGrammar.WExpression -> Result
 transWExpression x = case x of
-  Parser.AbsGrammar.WTry wblockorexpression wcatchs wthenalways -> failure x
+  Parser.AbsGrammar.WTry wblockorstatement wcatchs wthenalways -> failure x
   Parser.AbsGrammar.WOrExpression wexpression1 opor wexpression2 -> failure x
   Parser.AbsGrammar.WAndExpression wexpression1 opand wexpression2 -> failure x
   Parser.AbsGrammar.WEqExpression wexpression1 opeq wexpression2 -> failure x
@@ -89,7 +89,7 @@ transWExpression x = case x of
   Parser.AbsGrammar.WPostfixExpression wexpression oppostfix -> failure x
   Parser.AbsGrammar.WMessageSend wexpression ident wexpressions -> failure x
   Parser.AbsGrammar.WClosure wclosureparameters wstatements -> failure x
-  Parser.AbsGrammar.WIf wexpression wblockorexpression welse -> failure x
+  Parser.AbsGrammar.WIf wexpression wblockorstatement welse -> failure x
   Parser.AbsGrammar.WObjectLiteral ident wsuperclassdeclaration wvariabledeclarations wmethoddeclarations -> failure x
   Parser.AbsGrammar.WNew ident wnewparameters -> failure x
   Parser.AbsGrammar.WNumberLiteral integer -> failure x
@@ -101,10 +101,10 @@ transWExpression x = case x of
   Parser.AbsGrammar.WVariable ident -> failure x
 transWCatch :: Parser.AbsGrammar.WCatch -> Result
 transWCatch x = case x of
-  Parser.AbsGrammar.WCatch ident exceptiontype wblockorexpression -> failure x
+  Parser.AbsGrammar.WCatch ident exceptiontype wblockorstatement -> failure x
 transWThenAlways :: Parser.AbsGrammar.WThenAlways -> Result
 transWThenAlways x = case x of
-  Parser.AbsGrammar.WThenAlwaysProvided wblockorexpression -> failure x
+  Parser.AbsGrammar.WThenAlwaysProvided wblockorstatement -> failure x
   Parser.AbsGrammar.WNoThenAlways -> failure x
 transExceptionType :: Parser.AbsGrammar.ExceptionType -> Result
 transExceptionType x = case x of
@@ -159,7 +159,7 @@ transWClosureParameters x = case x of
 transWElse :: Parser.AbsGrammar.WElse -> Result
 transWElse x = case x of
   Parser.AbsGrammar.WNoElse -> failure x
-  Parser.AbsGrammar.WElse wblockorexpression -> failure x
+  Parser.AbsGrammar.WElse wblockorstatement -> failure x
 transWNewParameter :: Parser.AbsGrammar.WNewParameter -> Result
 transWNewParameter x = case x of
   Parser.AbsGrammar.WNewParameter ident wexpression -> failure x

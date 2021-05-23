@@ -202,14 +202,14 @@ instance Print Parser.AbsGrammar.WVariableValue where
     Parser.AbsGrammar.WithInitialValue wexpression -> prPrec i 0 (concatD [doc (showString "="), prt 0 wexpression])
     Parser.AbsGrammar.NoIntialValue -> prPrec i 0 (concatD [])
 
-instance Print Parser.AbsGrammar.WBlockOrExpression where
+instance Print Parser.AbsGrammar.WBlockOrStatement where
   prt i e = case e of
     Parser.AbsGrammar.SingleExpression wstatement -> prPrec i 0 (concatD [prt 0 wstatement])
     Parser.AbsGrammar.Block wstatements -> prPrec i 0 (concatD [doc (showString "{"), prt 0 wstatements, doc (showString "}")])
 
 instance Print Parser.AbsGrammar.WExpression where
   prt i e = case e of
-    Parser.AbsGrammar.WTry wblockorexpression wcatchs wthenalways -> prPrec i 0 (concatD [doc (showString "try"), prt 0 wblockorexpression, prt 0 wcatchs, prt 0 wthenalways])
+    Parser.AbsGrammar.WTry wblockorstatement wcatchs wthenalways -> prPrec i 0 (concatD [doc (showString "try"), prt 0 wblockorstatement, prt 0 wcatchs, prt 0 wthenalways])
     Parser.AbsGrammar.WOrExpression wexpression1 opor wexpression2 -> prPrec i 1 (concatD [prt 0 wexpression1, prt 0 opor, prt 1 wexpression2])
     Parser.AbsGrammar.WAndExpression wexpression1 opand wexpression2 -> prPrec i 1 (concatD [prt 1 wexpression1, prt 0 opand, prt 2 wexpression2])
     Parser.AbsGrammar.WEqExpression wexpression1 opeq wexpression2 -> prPrec i 2 (concatD [prt 2 wexpression1, prt 0 opeq, prt 3 wexpression2])
@@ -221,7 +221,7 @@ instance Print Parser.AbsGrammar.WExpression where
     Parser.AbsGrammar.WPostfixExpression wexpression oppostfix -> prPrec i 8 (concatD [prt 9 wexpression, prt 0 oppostfix])
     Parser.AbsGrammar.WMessageSend wexpression id wexpressions -> prPrec i 9 (concatD [prt 9 wexpression, doc (showString "."), prt 0 id, doc (showString "("), prt 0 wexpressions, doc (showString ")")])
     Parser.AbsGrammar.WClosure wclosureparameters wstatements -> prPrec i 10 (concatD [doc (showString "{"), prt 0 wclosureparameters, prt 0 wstatements, doc (showString "}")])
-    Parser.AbsGrammar.WIf wexpression wblockorexpression welse -> prPrec i 10 (concatD [doc (showString "if"), doc (showString "("), prt 0 wexpression, doc (showString ")"), prt 0 wblockorexpression, prt 0 welse])
+    Parser.AbsGrammar.WIf wexpression wblockorstatement welse -> prPrec i 10 (concatD [doc (showString "if"), doc (showString "("), prt 0 wexpression, doc (showString ")"), prt 0 wblockorstatement, prt 0 welse])
     Parser.AbsGrammar.WObjectLiteral id wsuperclassdeclaration wvariabledeclarations wmethoddeclarations -> prPrec i 10 (concatD [doc (showString "object"), prt 0 id, prt 0 wsuperclassdeclaration, doc (showString "{"), prt 0 wvariabledeclarations, prt 0 wmethoddeclarations, doc (showString "}")])
     Parser.AbsGrammar.WNew id wnewparameters -> prPrec i 10 (concatD [doc (showString "new"), prt 0 id, doc (showString "("), prt 0 wnewparameters, doc (showString ")")])
     Parser.AbsGrammar.WNumberLiteral n -> prPrec i 10 (concatD [prt 0 n])
@@ -240,13 +240,13 @@ instance Print [Parser.AbsGrammar.WCatch] where
 
 instance Print Parser.AbsGrammar.WCatch where
   prt i e = case e of
-    Parser.AbsGrammar.WCatch id exceptiontype wblockorexpression -> prPrec i 0 (concatD [doc (showString "catch"), prt 0 id, prt 0 exceptiontype, prt 0 wblockorexpression])
+    Parser.AbsGrammar.WCatch id exceptiontype wblockorstatement -> prPrec i 0 (concatD [doc (showString "catch"), prt 0 id, prt 0 exceptiontype, prt 0 wblockorstatement])
   prtList _ [] = concatD []
   prtList _ (x:xs) = concatD [prt 0 x, prt 0 xs]
 
 instance Print Parser.AbsGrammar.WThenAlways where
   prt i e = case e of
-    Parser.AbsGrammar.WThenAlwaysProvided wblockorexpression -> prPrec i 0 (concatD [doc (showString "then"), doc (showString "always"), prt 0 wblockorexpression])
+    Parser.AbsGrammar.WThenAlwaysProvided wblockorstatement -> prPrec i 0 (concatD [doc (showString "then"), doc (showString "always"), prt 0 wblockorstatement])
     Parser.AbsGrammar.WNoThenAlways -> prPrec i 0 (concatD [])
 
 instance Print Parser.AbsGrammar.ExceptionType where
@@ -316,7 +316,7 @@ instance Print Parser.AbsGrammar.WClosureParameters where
 instance Print Parser.AbsGrammar.WElse where
   prt i e = case e of
     Parser.AbsGrammar.WNoElse -> prPrec i 0 (concatD [])
-    Parser.AbsGrammar.WElse wblockorexpression -> prPrec i 0 (concatD [doc (showString "else"), prt 0 wblockorexpression])
+    Parser.AbsGrammar.WElse wblockorstatement -> prPrec i 0 (concatD [doc (showString "else"), prt 0 wblockorstatement])
 
 instance Print Parser.AbsGrammar.WNewParameter where
   prt i e = case e of

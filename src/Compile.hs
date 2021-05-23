@@ -217,7 +217,7 @@ compileExpression (WLiteralFalse) = [ Push $ WBoolean False ]
 
 compileExpression x = error $ show x
 
-toStatementList :: WBlockOrExpression -> [WStatement]
+toStatementList :: WBlockOrStatement -> [WStatement]
 toStatementList (SingleExpression statement) = [statement]
 toStatementList (Block statements) = statements
 

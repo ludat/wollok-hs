@@ -51,14 +51,14 @@ Const. WVariableType ::= "const";
 WithInitialValue. WVariableValue ::= "=" WExpression;
 NoIntialValue. WVariableValue ::= ;
 
-SingleExpression. WBlockOrExpression ::= WStatement;
-Block. WBlockOrExpression ::= "{" [WStatement] "}";
+SingleExpression. WBlockOrStatement ::= WStatement;
+Block. WBlockOrStatement ::= "{" [WStatement] "}";
 
-WTry. WExpression ::= "try" WBlockOrExpression [WCatch] WThenAlways;
+WTry. WExpression ::= "try" WBlockOrStatement [WCatch] WThenAlways;
 separator WCatch "";
 
-WCatch. WCatch ::= "catch" Ident ExceptionType WBlockOrExpression;
-WThenAlwaysProvided. WThenAlways ::= "then" "always" WBlockOrExpression;
+WCatch. WCatch ::= "catch" Ident ExceptionType WBlockOrStatement;
+WThenAlwaysProvided. WThenAlways ::= "then" "always" WBlockOrStatement;
 WNoThenAlways. WThenAlways ::= ;
 
 ProvidedExceptionType. ExceptionType ::= ":" Ident;
@@ -91,9 +91,9 @@ WClosure . WExpression10 ::= "{" WClosureParameters [WStatement] "}";
 WNoParameters . WClosureParameters ::=;
 WWithParameters . WClosureParameters ::= [Ident] "=>";
 
-WIf . WExpression10 ::= "if" "(" WExpression ")" WBlockOrExpression WElse;
+WIf . WExpression10 ::= "if" "(" WExpression ")" WBlockOrStatement WElse;
 WNoElse . WElse ::= ;
-WElse . WElse ::= "else" WBlockOrExpression;
+WElse . WElse ::= "else" WBlockOrStatement;
 
 WObjectLiteral. WExpression10 ::=
     "object" Ident WSuperclassDeclaration "{"
