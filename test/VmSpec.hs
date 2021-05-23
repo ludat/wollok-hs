@@ -181,6 +181,24 @@ spec = do
       it "fails when an instance variable is not initialized after object creation" $ do
         pendingWith "tendriamos que implementar excepciones primero o atrapar \
                     \excepciones de haskell."
+    describe "instance variables" $ do
+      it "modifies instance variables when there's an assignment" $ do
+        stackAfterExecuting
+          [w|
+              class Golondrina {
+                  var energia
+                  method energia() = energia
+                  method cambiarEnergia() {
+                      energia = 2
+                  }
+              }
+              program x {
+                  var golondrina = new Golondrina(energia = 4)
+                  golondrina.cambiarEnergia()
+                  golondrina.energia()
+              }
+          |]
+          `shouldBe` [WInteger 2, WNull]
     describe "local variables" $ do
       it "can obtain the value of a local variable defined in the same context" $ do
         stackAfterExecuting
@@ -194,7 +212,7 @@ spec = do
               }
           |]
           `shouldBe` [WInteger 3]
-      it "shadows instance variables when there is a local variable with the same name" $ do
+      it "shadows instance variables when there is a local variable with the same name (read)" $ do
         stackAfterExecuting
           [w|
               class Golondrina {
@@ -230,6 +248,35 @@ spec = do
               program x {
                   const y = 3
                   y
+              }
+          |]
+          `shouldBe` [WInteger 3]
+      it "changes the value of vars when an assignment is executed" $ do
+        stackAfterExecuting
+          [w|
+              program x {
+                  var y = 3
+                  y = 4
+                  y
+              }
+          |]
+          `shouldBe` [WInteger 4]
+      it "fails when a non-declared variable is assigned" $ do
+        pendingWith "tendriamos que ver cómo hacer que el compilador notifique errores o atrapar \
+                    \excepciones de haskell."
+      it "shadows instance variables when there is a local variable with the same name (write)" $ do
+        stackAfterExecuting
+          [w|
+              class Golondrina {
+                  var energia
+                  method energia() {
+                      var energia = 2
+                      energia = 3
+                      return energia
+                  }
+              }
+              program x {
+                  new Golondrina(energia = 4).energia()
               }
           |]
           `shouldBe` [WInteger 3]

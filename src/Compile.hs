@@ -41,6 +41,7 @@ data Instruction
   | Return
   | CreateInstance ClassName [String]
   | SetInstanceVariable String
+  | SetLocalVariable String -- TODO: Reemplazar ambos SetXVariable por SetVariable
   | PushVariable String
   | DeclareLocalVariable String
   | JumpIfFalse Int
@@ -244,7 +245,8 @@ compileStatement
   = undefined
 compileStatement (WReturn e) = compileExpression e ++ [Return]
 compileStatement (WThrow w1) = undefined
-compileStatement (WAssignment i w2) = undefined
+compileStatement (WAssignment (Ident variableName) expression)
+  = compileExpression expression ++ [ SetLocalVariable variableName ]
 
 run :: WollokBytecode -> VmState
 run wollokBytecode =
@@ -358,6 +360,10 @@ runInstruction (SetInstanceVariable variableName) = do
 
   modifyStackFrame $ \stackFrame -> (stackFrame { self = newSelf }, ())
 
+runInstruction (SetLocalVariable variableName) = do
+  newValue <- pop
+  setLocalVariable variableName newValue
+
 lookupVariable :: String -> ExecutionM RuntimeValue
 lookupVariable variableName = do
   maybeLocalVariable <- lookupLocalVariable variableName
@@ -371,11 +377,15 @@ lookupVariable variableName = do
 
 declareLocalVariable :: String -> RuntimeValue -> ExecutionM ()
 declareLocalVariable name value = do
-  vmState <- State.get
-  let Just (restOfFrames, stackFrame) = stackPop (vmStack vmState)
-  State.put $ vmState
-    { vmStack = stackPush restOfFrames stackFrame { localVariableBindings = Map.insert name value $ localVariableBindings stackFrame }
-    }
+  modifyStackFrame $
+    \stackFrame ->
+       (stackFrame { localVariableBindings = Map.insert name value $ localVariableBindings stackFrame }, ())
+
+setLocalVariable :: String -> RuntimeValue -> ExecutionM ()
+setLocalVariable name value = do
+  modifyStackFrame $
+    \stackFrame ->
+       (stackFrame { localVariableBindings = Map.insert name value $ localVariableBindings stackFrame }, ())
 
 lookupLocalVariable :: String -> ExecutionM (Maybe RuntimeValue)
 lookupLocalVariable name = do
