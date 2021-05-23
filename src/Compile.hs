@@ -204,15 +204,10 @@ compileExpression (WNew (Ident classIdentifier) arguments) =
     extractParameterExpression (WNewParameter _ expression) = expression
 compileExpression (WVariable (Ident variableName)) = [ PushVariable variableName ]
 compileExpression (WIf condition t WNoElse) = undefined
-compileExpression (WIf condition (SingleExpression w5) (WElse w))
-  = undefined
-compileExpression
-  (WIf condition (Block l_w) (WElse (SingleExpression w6)))
-  = undefined
-compileExpression (WIf condition (Block thenBlock) (WElse (Block elseBlock)))
+compileExpression (WIf condition thenBlock (WElse elseBlock))
   = let
-      compiledThen = concatMap compileStatement thenBlock
-      compiledElse = concatMap compileStatement elseBlock
+      compiledThen = concatMap compileStatement $ toStatementList thenBlock
+      compiledElse = concatMap compileStatement $ toStatementList elseBlock
     in
       compileExpression condition ++ [ JumpIfFalse $ length compiledThen + 1 ]
         ++ compiledThen ++ [ Jump $ length compiledElse ]
@@ -221,6 +216,10 @@ compileExpression (WLiteralTrue) = [ Push $ WBoolean True ]
 compileExpression (WLiteralFalse) = [ Push $ WBoolean False ]
 
 compileExpression x = error $ show x
+
+toStatementList :: WBlockOrExpression -> [WStatement]
+toStatementList (SingleExpression statement) = [statement]
+toStatementList (Block statements) = statements
 
 compileStatement :: WStatement -> [Instruction]
 compileStatement (TopLevelExpression e) = compileExpression e

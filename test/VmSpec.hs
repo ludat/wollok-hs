@@ -258,6 +258,14 @@ spec = do
               }
           |]
           `shouldBe` [WInteger 0]
+      it "works with ifs that have single statements as branches" $ do
+        stackAfterExecuting
+          [w|
+              program x {
+                  if (true) 1 else 0
+              }
+          |]
+          `shouldBe` [WInteger 1]
 
 
 stackAfterExecuting :: WFile -> [RuntimeValue]
