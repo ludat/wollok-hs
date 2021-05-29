@@ -95,11 +95,11 @@ spec = do
               WIf (WEqExpression (WVariable (Ident "a")) OpEq1 (WNumberLiteral 7))
                 (Block [TopLevelExpression $ WNumberLiteral 42]) (WElse (Block [TopLevelExpression (WNumberLiteral 13)])))
             , TopLevelExpression $
-                WClosure (WWithParameters [Ident "a", Ident "b"]) [WReturn $ WNumberLiteral 7]
+                WClosureLiteral (WWithParameters [Ident "a", Ident "b"]) [WReturn $ WNumberLiteral 7]
             , TopLevelExpression $
-                WClosure (WWithParameters []) [WReturn $ WNumberLiteral 7]
+                WClosureLiteral (WWithParameters []) [WReturn $ WNumberLiteral 7]
             , TopLevelExpression $
-                WClosure WNoParameters [WReturn $ WNumberLiteral 7]
+                WClosureLiteral WNoParameters [WReturn $ WNumberLiteral 7]
             , TopLevelExpression (WObjectLiteral $ WObjectDeclaration (Ident "console") WNoSuperclass []
                 [ WMethodDeclaration (WSelector $ Ident "println") [Ident "obj"] ImplementedNatively])
             , TopLevelExpression (WNew (Ident "X") [])

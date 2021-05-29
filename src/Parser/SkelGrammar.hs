@@ -92,7 +92,7 @@ transWExpression x = case x of
   Parser.AbsGrammar.WUnaryExpression opunary wexpression -> failure x
   Parser.AbsGrammar.WPostfixExpression wexpression oppostfix -> failure x
   Parser.AbsGrammar.WMessageSend wexpression ident wexpressions -> failure x
-  Parser.AbsGrammar.WClosure wclosureparameters wstatements -> failure x
+  Parser.AbsGrammar.WClosureLiteral wclosureparameters wstatements -> failure x
   Parser.AbsGrammar.WIf wexpression wblockorstatement welse -> failure x
   Parser.AbsGrammar.WObjectLiteral wobjectdeclaration -> failure x
   Parser.AbsGrammar.WNew ident wnewparameters -> failure x

@@ -345,7 +345,35 @@ spec = do
               }
           |]
           `shouldBe` [WInteger 1]
-
+    describe "closures" $ do
+      it "calling a closure executes its body" $ do
+        stackAfterExecuting
+          [w|
+              class Number {
+                method +(a) native
+              }
+              class Closure {
+                method apply() native
+              }
+              program x {
+                  { return 7 }.apply() + 1
+              }
+          |]
+          `shouldBe` [WInteger 8]
+      it "executing a closure returns the result of the last statement" $ do
+        stackAfterExecuting
+          [w|
+              class Number {
+                method +(a) native
+              }
+              class Closure {
+                method apply() native
+              }
+              program x {
+                  { 7 }.apply() + 1
+              }
+          |]
+          `shouldBe` [WInteger 8]
 
 stackAfterExecuting :: WFile -> [RuntimeValue]
 stackAfterExecuting = concatMap (toList . valueStack) . toList . vmStack . run . compile

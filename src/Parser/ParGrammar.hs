@@ -1394,7 +1394,7 @@ happyReduction_156 (happy_x_4 `HappyStk`
 	 = case happyOut102 happy_x_2 of { (HappyWrap102 happy_var_2) -> 
 	case happyOut62 happy_x_3 of { (HappyWrap62 happy_var_3) -> 
 	happyIn101
-		 (Parser.AbsGrammar.WClosure happy_var_2 happy_var_3
+		 (Parser.AbsGrammar.WClosureLiteral happy_var_2 happy_var_3
 	) `HappyStk` happyRest}}
 
 happyReduce_157 = happyReduce 6# 48# happyReduction_157

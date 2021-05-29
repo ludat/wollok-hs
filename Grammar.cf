@@ -94,7 +94,7 @@ WMessageSend. WExpression9 ::=
     WExpression9 "." Ident "(" [WExpression] ")";
 separator WExpression ",";
 
-WClosure . WExpression10 ::= "{" WClosureParameters [WStatement] "}";
+WClosureLiteral . WExpression10 ::= "{" WClosureParameters [WStatement] "}";
 WNoParameters . WClosureParameters ::=;
 WWithParameters . WClosureParameters ::= [Ident] "=>";
 

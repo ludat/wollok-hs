@@ -225,7 +225,7 @@ instance Print Parser.AbsGrammar.WExpression where
     Parser.AbsGrammar.WUnaryExpression opunary wexpression -> prPrec i 7 (concatD [prt 0 opunary, prt 8 wexpression])
     Parser.AbsGrammar.WPostfixExpression wexpression oppostfix -> prPrec i 8 (concatD [prt 9 wexpression, prt 0 oppostfix])
     Parser.AbsGrammar.WMessageSend wexpression id wexpressions -> prPrec i 9 (concatD [prt 9 wexpression, doc (showString "."), prt 0 id, doc (showString "("), prt 0 wexpressions, doc (showString ")")])
-    Parser.AbsGrammar.WClosure wclosureparameters wstatements -> prPrec i 10 (concatD [doc (showString "{"), prt 0 wclosureparameters, prt 0 wstatements, doc (showString "}")])
+    Parser.AbsGrammar.WClosureLiteral wclosureparameters wstatements -> prPrec i 10 (concatD [doc (showString "{"), prt 0 wclosureparameters, prt 0 wstatements, doc (showString "}")])
     Parser.AbsGrammar.WIf wexpression wblockorstatement welse -> prPrec i 10 (concatD [doc (showString "if"), doc (showString "("), prt 0 wexpression, doc (showString ")"), prt 0 wblockorstatement, prt 0 welse])
     Parser.AbsGrammar.WObjectLiteral wobjectdeclaration -> prPrec i 10 (concatD [prt 0 wobjectdeclaration])
     Parser.AbsGrammar.WNew id wnewparameters -> prPrec i 10 (concatD [doc (showString "new"), prt 0 id, doc (showString "("), prt 0 wnewparameters, doc (showString ")")])

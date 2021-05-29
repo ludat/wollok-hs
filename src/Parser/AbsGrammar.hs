@@ -100,7 +100,7 @@ data WExpression
     | WUnaryExpression OpUnary WExpression
     | WPostfixExpression WExpression OpPostfix
     | WMessageSend WExpression Ident [WExpression]
-    | WClosure WClosureParameters [WStatement]
+    | WClosureLiteral WClosureParameters [WStatement]
     | WIf WExpression WBlockOrStatement WElse
     | WObjectLiteral WObjectDeclaration
     | WNew Ident [WNewParameter]
