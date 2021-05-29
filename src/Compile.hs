@@ -52,7 +52,12 @@ data RuntimeValue
   = WInteger Integer
   | WBoolean Bool
   | WNull
-  | WObject ClassName (Map String RuntimeValue)
+  | WObjectReference ObjectId
+  deriving (Show, Eq)
+
+type ObjectId = Int
+
+data WObject = WObject ClassName (Map String RuntimeValue)
   deriving (Show, Eq)
 
 data StackFrame = StackFrame
@@ -70,6 +75,7 @@ instance Show StackFrame where
 data VmState = VmState
   { vmStack :: Stack StackFrame
   , vmClassesBytecode :: CompiledClasses
+  , vmObjectSpace :: Map ObjectId WObject
   } deriving (Show)
 
 type ExecutionM = State VmState
@@ -77,11 +83,13 @@ type ExecutionM = State VmState
 instance Eq a => Eq (Stack a) where
   (==) = (==) `on` toList
 
-classOf :: RuntimeValue -> ClassName
-classOf (WInteger _) = ClassName "Number"
-classOf (WBoolean _) = ClassName "Boolean"
-classOf (WNull) = ClassName "Null"
-classOf (WObject className _) = className
+classOf :: RuntimeValue -> ExecutionM ClassName
+classOf (WInteger _) = pure $ ClassName "Number"
+classOf (WBoolean _) = pure $ ClassName "Boolean"
+classOf (WNull) = pure $ ClassName "Null"
+classOf (WObjectReference objectId) = do
+  WObject className _ <- dereference objectId
+  pure className
 
 toList :: Stack a -> [a]
 toList stack =
@@ -106,6 +114,7 @@ vmInitialState (WollokBytecode {..}) =
   VmState
     { vmStack = emptyStackFrame
     , vmClassesBytecode = classesBytecode
+    , vmObjectSpace = Map.empty
     }
 
 compile :: WFile -> WollokBytecode
@@ -327,8 +336,9 @@ runInstruction (CreateInstance className constructorArgumentNames) = do
           instanceVariablesInstructions
         ++ [PushSelf, Return]
 
-  pushNewStackFrame newObject initializeInstructions
+  newObjectId <- allocateObject newObject
 
+  pushNewStackFrame (WObjectReference newObjectId) initializeInstructions
 
 runInstruction (PushVariable variableName) = do
   variableValue <- lookupVariable variableName
@@ -363,14 +373,22 @@ runInstruction (SetVariable variableName) = do
     Nothing ->
       setInstanceVariable variableName newValue
 
+allocateObject :: WObject -> ExecutionM ObjectId
+allocateObject newObject = do
+  vmState <- State.get
+  let newId = maximum $ (0 :) $ Map.keys $ vmObjectSpace vmState
+      newObjectSpace = Map.insert newId newObject $ vmObjectSpace vmState
+  State.put $ vmState { vmObjectSpace = newObjectSpace }
+  pure newId
+
 setInstanceVariable :: String -> RuntimeValue -> ExecutionM ()
 setInstanceVariable variableName newValue = do
   self <- getSelf
-  let WObject className instanceVariables = self
-
-  let newSelf = WObject className $ Map.insert variableName newValue instanceVariables
-
-  modifyStackFrame $ \stackFrame -> (stackFrame { self = newSelf }, ())
+  let WObjectReference objectId = self
+  updateReference objectId $
+    \(WObject className instanceVariables) ->
+        WObject className $
+          Map.insert variableName newValue instanceVariables
 
 lookupVariable :: String -> ExecutionM RuntimeValue
 lookupVariable variableName = do
@@ -380,8 +398,20 @@ lookupVariable variableName = do
       pure localVariableValue
     Nothing -> do
       self <- getSelf
-      let WObject _ instanceVariables = self
+      let WObjectReference objectId = self
+      WObject _ instanceVariables <- dereference objectId
       pure $ fromJust $ Map.lookup variableName instanceVariables
+
+updateReference :: ObjectId -> (WObject -> WObject) -> ExecutionM ()
+updateReference objectId f = do
+  vmState <- State.get
+  let newObjectSpace = Map.update (Just . f) objectId $ vmObjectSpace vmState
+  State.put $ vmState { vmObjectSpace = newObjectSpace }
+
+dereference :: ObjectId -> ExecutionM WObject
+dereference objectId = do
+  vmState <- State.get
+  pure $ fromJust $ Map.lookup objectId $ vmObjectSpace vmState
 
 declareLocalVariable :: String -> RuntimeValue -> ExecutionM ()
 declareLocalVariable name value = do
@@ -437,7 +467,7 @@ runNativeMethod receiver arguments className selector =
 
 lookupClassOf :: RuntimeValue -> ExecutionM WollokCompiledClass
 lookupClassOf object = do
-  lookupClass $ classOf object
+  lookupClass =<< classOf object
 
 lookupClass :: ClassName -> ExecutionM WollokCompiledClass
 lookupClass className = do
