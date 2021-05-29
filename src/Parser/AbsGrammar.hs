@@ -24,7 +24,9 @@ data WFile = WFile [Import] [WLibraryElement] WProgram
 data Import = Import
   deriving (C.Eq, C.Ord, C.Show, C.Read, C.Data, C.Typeable, C.Generic)
 
-data WLibraryElement = WLibraryElement WClassDeclaration
+data WLibraryElement
+    = WTopLevelClass WClassDeclaration
+    | WTopLevelObject WObjectDeclaration
   deriving (C.Eq, C.Ord, C.Show, C.Read, C.Data, C.Typeable, C.Generic)
 
 data WProgram = WProgram Ident [WStatement]
@@ -39,6 +41,10 @@ data WSuperclassDeclaration = WSuperclass Ident | WNoSuperclass
 
 data WMethodDeclaration
     = WMethodDeclaration WSelector [Ident] MethodBody
+  deriving (C.Eq, C.Ord, C.Show, C.Read, C.Data, C.Typeable, C.Generic)
+
+data WObjectDeclaration
+    = WObjectDeclaration Ident WSuperclassDeclaration [WVariableDeclaration] [WMethodDeclaration]
   deriving (C.Eq, C.Ord, C.Show, C.Read, C.Data, C.Typeable, C.Generic)
 
 data WSelector
@@ -96,7 +102,7 @@ data WExpression
     | WMessageSend WExpression Ident [WExpression]
     | WClosure WClosureParameters [WStatement]
     | WIf WExpression WBlockOrStatement WElse
-    | WObjectLiteral Ident WSuperclassDeclaration [WVariableDeclaration] [WMethodDeclaration]
+    | WObjectLiteral WObjectDeclaration
     | WNew Ident [WNewParameter]
     | WNumberLiteral Integer
     | WNullLiteral

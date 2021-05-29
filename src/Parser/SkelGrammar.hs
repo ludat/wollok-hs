@@ -22,7 +22,8 @@ transImport x = case x of
   Parser.AbsGrammar.Import -> failure x
 transWLibraryElement :: Parser.AbsGrammar.WLibraryElement -> Result
 transWLibraryElement x = case x of
-  Parser.AbsGrammar.WLibraryElement wclassdeclaration -> failure x
+  Parser.AbsGrammar.WTopLevelClass wclassdeclaration -> failure x
+  Parser.AbsGrammar.WTopLevelObject wobjectdeclaration -> failure x
 transWProgram :: Parser.AbsGrammar.WProgram -> Result
 transWProgram x = case x of
   Parser.AbsGrammar.WProgram ident wstatements -> failure x
@@ -36,6 +37,9 @@ transWSuperclassDeclaration x = case x of
 transWMethodDeclaration :: Parser.AbsGrammar.WMethodDeclaration -> Result
 transWMethodDeclaration x = case x of
   Parser.AbsGrammar.WMethodDeclaration wselector idents methodbody -> failure x
+transWObjectDeclaration :: Parser.AbsGrammar.WObjectDeclaration -> Result
+transWObjectDeclaration x = case x of
+  Parser.AbsGrammar.WObjectDeclaration ident wsuperclassdeclaration wvariabledeclarations wmethoddeclarations -> failure x
 transWSelector :: Parser.AbsGrammar.WSelector -> Result
 transWSelector x = case x of
   Parser.AbsGrammar.WSelector ident -> failure x
@@ -90,7 +94,7 @@ transWExpression x = case x of
   Parser.AbsGrammar.WMessageSend wexpression ident wexpressions -> failure x
   Parser.AbsGrammar.WClosure wclosureparameters wstatements -> failure x
   Parser.AbsGrammar.WIf wexpression wblockorstatement welse -> failure x
-  Parser.AbsGrammar.WObjectLiteral ident wsuperclassdeclaration wvariabledeclarations wmethoddeclarations -> failure x
+  Parser.AbsGrammar.WObjectLiteral wobjectdeclaration -> failure x
   Parser.AbsGrammar.WNew ident wnewparameters -> failure x
   Parser.AbsGrammar.WNumberLiteral integer -> failure x
   Parser.AbsGrammar.WNullLiteral -> failure x

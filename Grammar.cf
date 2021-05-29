@@ -3,7 +3,8 @@ separator Import "";
 separator WLibraryElement "";
 
 Import. Import ::= "import - TODO";
-WLibraryElement. WLibraryElement ::= WClassDeclaration;
+WTopLevelClass. WLibraryElement ::= WClassDeclaration;
+WTopLevelObject. WLibraryElement ::= WObjectDeclaration;
 
 WProgram. WProgram ::= "program" Ident "{" [WStatement] "}";
 terminator WStatement "";
@@ -22,6 +23,12 @@ WNoSuperclass. WSuperclassDeclaration ::= ;
 WMethodDeclaration. WMethodDeclaration ::=
     "method" WSelector "(" [Ident] ")" MethodBody;
 separator Ident ",";
+
+WObjectDeclaration. WObjectDeclaration ::=
+    "object" Ident WSuperclassDeclaration "{"
+        [WVariableDeclaration]
+        [WMethodDeclaration]
+    "}";
 
 WSelector. WSelector ::= Ident;
 WAddOpSelector. WSelector ::= OpAdd;
@@ -95,11 +102,7 @@ WIf . WExpression10 ::= "if" "(" WExpression ")" WBlockOrStatement WElse;
 WNoElse . WElse ::= ;
 WElse . WElse ::= "else" WBlockOrStatement;
 
-WObjectLiteral. WExpression10 ::=
-    "object" Ident WSuperclassDeclaration "{"
-        [WVariableDeclaration]
-        [WMethodDeclaration]
-    "}";
+WObjectLiteral. WExpression10 ::= WObjectDeclaration;
 
 WNew. WExpression10 ::= "new" Ident "(" [WNewParameter] ")";
 WNewParameter. WNewParameter ::= Ident "=" WExpression;

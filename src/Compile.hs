@@ -132,7 +132,7 @@ compileClasses libraryElements = Map.fromList $ map compileClass libraryElements
 
 compileClass :: WLibraryElement -> (ClassName, WollokCompiledClass)
 compileClass
-  (WLibraryElement (WClassDeclaration (Ident classIdentifier)
+  (WTopLevelClass (WClassDeclaration (Ident classIdentifier)
                                       superclassName
                                       instanceVariables
                                       methods))
@@ -150,6 +150,8 @@ compileClass
       compileInstanceVariable
         (WVariableDeclaration _ (Ident variableName) NoIntialValue)
         = (variableName, Nothing)
+compileClass
+  (WTopLevelObject _) = undefined
 
 compileMethod :: ClassName -> WMethodDeclaration -> (Selector, MethodImplementation)
 compileMethod className (WMethodDeclaration name parameters body) =

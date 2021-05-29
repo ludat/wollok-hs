@@ -122,7 +122,8 @@ instance Print Parser.AbsGrammar.Import where
 
 instance Print Parser.AbsGrammar.WLibraryElement where
   prt i e = case e of
-    Parser.AbsGrammar.WLibraryElement wclassdeclaration -> prPrec i 0 (concatD [prt 0 wclassdeclaration])
+    Parser.AbsGrammar.WTopLevelClass wclassdeclaration -> prPrec i 0 (concatD [prt 0 wclassdeclaration])
+    Parser.AbsGrammar.WTopLevelObject wobjectdeclaration -> prPrec i 0 (concatD [prt 0 wobjectdeclaration])
   prtList _ [] = concatD []
   prtList _ (x:xs) = concatD [prt 0 x, prt 0 xs]
 
@@ -156,6 +157,10 @@ instance Print Parser.AbsGrammar.WMethodDeclaration where
 
 instance Print [Parser.AbsGrammar.Ident] where
   prt = prtList
+
+instance Print Parser.AbsGrammar.WObjectDeclaration where
+  prt i e = case e of
+    Parser.AbsGrammar.WObjectDeclaration id wsuperclassdeclaration wvariabledeclarations wmethoddeclarations -> prPrec i 0 (concatD [doc (showString "object"), prt 0 id, prt 0 wsuperclassdeclaration, doc (showString "{"), prt 0 wvariabledeclarations, prt 0 wmethoddeclarations, doc (showString "}")])
 
 instance Print Parser.AbsGrammar.WSelector where
   prt i e = case e of
@@ -222,7 +227,7 @@ instance Print Parser.AbsGrammar.WExpression where
     Parser.AbsGrammar.WMessageSend wexpression id wexpressions -> prPrec i 9 (concatD [prt 9 wexpression, doc (showString "."), prt 0 id, doc (showString "("), prt 0 wexpressions, doc (showString ")")])
     Parser.AbsGrammar.WClosure wclosureparameters wstatements -> prPrec i 10 (concatD [doc (showString "{"), prt 0 wclosureparameters, prt 0 wstatements, doc (showString "}")])
     Parser.AbsGrammar.WIf wexpression wblockorstatement welse -> prPrec i 10 (concatD [doc (showString "if"), doc (showString "("), prt 0 wexpression, doc (showString ")"), prt 0 wblockorstatement, prt 0 welse])
-    Parser.AbsGrammar.WObjectLiteral id wsuperclassdeclaration wvariabledeclarations wmethoddeclarations -> prPrec i 10 (concatD [doc (showString "object"), prt 0 id, prt 0 wsuperclassdeclaration, doc (showString "{"), prt 0 wvariabledeclarations, prt 0 wmethoddeclarations, doc (showString "}")])
+    Parser.AbsGrammar.WObjectLiteral wobjectdeclaration -> prPrec i 10 (concatD [prt 0 wobjectdeclaration])
     Parser.AbsGrammar.WNew id wnewparameters -> prPrec i 10 (concatD [doc (showString "new"), prt 0 id, doc (showString "("), prt 0 wnewparameters, doc (showString ")")])
     Parser.AbsGrammar.WNumberLiteral n -> prPrec i 10 (concatD [prt 0 n])
     Parser.AbsGrammar.WNullLiteral -> prPrec i 10 (concatD [doc (showString "null")])

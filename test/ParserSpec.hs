@@ -23,6 +23,8 @@ spec = do
         }
         class Y inherits X {}
 
+        object coso {}
+
         program testExpression {
           var x = 42
           const nada = null
@@ -51,15 +53,17 @@ spec = do
           new X().m1()
         }
       |] `shouldBe`
-        (WFile []
-          [ WLibraryElement $ WClassDeclaration (Ident "X") WNoSuperclass
+        WFile []
+          [ WTopLevelClass $ WClassDeclaration (Ident "X") WNoSuperclass
             [ WVariableDeclaration Var (Ident "v1") $ WithInitialValue (WNumberLiteral 2) ]
             [ WMethodDeclaration (WSelector $ Ident "m1") ["x", "y"]
                 $ ImplementedByBlock [ TopLevelExpression $ WVariable "x" ]
             , WMethodDeclaration (WSelector $ Ident "m2") [] ImplementedNatively
             , WMethodDeclaration (WSelector $ Ident "m3") [] (ImplementedByExpression $ WNumberLiteral 2)
             ]
-          , WLibraryElement $ WClassDeclaration (Ident "Y") (WSuperclass (Ident "X")) [] []
+          , WTopLevelClass $ WClassDeclaration (Ident "Y") (WSuperclass (Ident "X")) [] []
+
+          , WTopLevelObject (WObjectDeclaration (Ident "coso") WNoSuperclass [] [])
           ]
           (WProgram "testExpression"
             [ VarDeclaration $ WVariableDeclaration Var "x" $ WithInitialValue $ WNumberLiteral 42
@@ -96,7 +100,7 @@ spec = do
                 WClosure (WWithParameters []) [WReturn $ WNumberLiteral 7]
             , TopLevelExpression $
                 WClosure WNoParameters [WReturn $ WNumberLiteral 7]
-            , TopLevelExpression (WObjectLiteral (Ident "console") WNoSuperclass []
+            , TopLevelExpression (WObjectLiteral $ WObjectDeclaration (Ident "console") WNoSuperclass []
                 [ WMethodDeclaration (WSelector $ Ident "println") [Ident "obj"] ImplementedNatively])
             , TopLevelExpression (WNew (Ident "X") [])
             , TopLevelExpression (WNew (Ident "X")
@@ -106,4 +110,3 @@ spec = do
             , TopLevelExpression (WMessageSend (WNew (Ident "X") []) (Ident "m1") [])
             ]
           )
-        )
