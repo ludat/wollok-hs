@@ -25,7 +25,7 @@ type CompiledClasses = Map ClassName WollokCompiledClass
 data WollokCompiledClass = WollokCompiledClass (Map String (Maybe [Instruction])) (Map Selector MethodImplementation)
   deriving (Show, Eq)
 
-data MethodImplementation = Custom [Instruction] | Native ClassName Selector
+data MethodImplementation = Custom [String] [Instruction] | Native ClassName Selector
   deriving (Show, Eq)
 
 data Selector = Selector String Int
@@ -154,9 +154,22 @@ compileClass
   (WTopLevelObject _) = undefined
 
 compileMethod :: ClassName -> WMethodDeclaration -> (Selector, MethodImplementation)
-compileMethod className (WMethodDeclaration name parameters body) =
-  (selector, compileMethodBody className selector body)
-  where selector = Selector (nameFrom name) (length parameters)
+compileMethod className (WMethodDeclaration name parameterIdents body) =
+  let
+    parameters = fmap identToString parameterIdents
+    selector = Selector (nameFrom name) (length parameters)
+    compiledMethodBody =
+      case body of
+        ImplementedNatively ->
+          Native className selector
+        (ImplementedByExpression e) ->
+          Custom parameters $ compileExpression e ++ [Return]
+        (ImplementedByBlock statements) ->
+          Custom parameters $ concatMap compileStatement statements ++ [Push WNull, Return]
+  in (selector, compiledMethodBody)
+
+identToString :: Ident -> String
+identToString (Ident s) = s
 
 nameFrom :: WSelector -> String
 nameFrom (WSelector (Ident name)) = name
@@ -184,13 +197,6 @@ nameFrom (WUnaryOpSelector OpUnary2) = "-"
 nameFrom (WUnaryOpSelector OpUnary3) = "+"
 nameFrom (WPostfixOpSelector OpPostfix1) = "++"
 nameFrom (WPostfixOpSelector OpPostfix2) = "--"
-
-compileMethodBody :: ClassName -> Selector -> MethodBody -> MethodImplementation
-compileMethodBody className selector methodBody =
-  case methodBody of
-    ImplementedNatively -> Native className selector
-    (ImplementedByExpression e) -> Custom $ compileExpression e ++ [Return]
-    (ImplementedByBlock statements) -> Custom $ concatMap compileStatement statements ++ [Push WNull, Return]
 
 compileExpression :: WExpression -> [Instruction]
 compileExpression (WNumberLiteral i) = [Push $ WInteger i]
@@ -340,7 +346,7 @@ runInstruction (CreateInstance className constructorArgumentNames) = do
 
   newObjectId <- allocateObject newObject
 
-  pushNewStackFrame (WObjectReference newObjectId) initializeInstructions
+  pushNewStackFrame (WObjectReference newObjectId) Map.empty initializeInstructions
 
 runInstruction (PushVariable variableName) = do
   variableValue <- lookupVariable variableName
@@ -438,16 +444,17 @@ activateMethod receiver method arguments = do
   case method of
     Native className' selector' -> do
       runNativeMethod receiver arguments className' selector'
-    Custom instructions -> do
-      pushNewStackFrame receiver instructions
+    Custom parameters instructions -> do
+      let localVariables = Map.fromList $ zip parameters arguments
+      pushNewStackFrame receiver localVariables instructions
 
-pushNewStackFrame :: RuntimeValue -> [Instruction] -> ExecutionM ()
-pushNewStackFrame self instructions = do
+pushNewStackFrame :: RuntimeValue -> Map String RuntimeValue -> [Instruction] -> ExecutionM ()
+pushNewStackFrame self localVariables instructions = do
   vmStateInicial <- State.get
   State.put $ vmStateInicial
     { vmStack = stackPush
         (vmStack vmStateInicial)
-        (StackFrame stackNew self Map.empty 0 instructions)
+        (StackFrame stackNew self localVariables 0 instructions)
     }
 
 runNativeMethod :: RuntimeValue -> [RuntimeValue] -> ClassName -> Selector -> ExecutionM ()

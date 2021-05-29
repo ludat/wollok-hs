@@ -54,7 +54,7 @@ spec = do
               }
           |]
           `shouldBe` [WInteger 42, WInteger 10]
-      it "consumes the correct number of arguments from the stack during a message send" $ do
+      it "consumes the correct number of arguments from the stack during a message send for native methods" $ do
         stackAfterExecuting
           [w|
               class Number {
@@ -65,6 +65,20 @@ spec = do
               }
           |]
           `shouldBe` [WBoolean True]
+      it "consumes the correct number of arguments from the stack during a message send \
+         \ for non-native methods" $ do
+        stackAfterExecuting
+          [w|
+              class Cosa {
+                  method first(a, b) {
+                      return a
+                  }
+              }
+              program x {
+                  new Cosa().first(1, 2)
+              }
+          |]
+          `shouldBe` [WInteger 1]
     describe "method definitions" $ do
       it "can execute user-defined methods defined by single expression" $ do
         stackAfterExecuting
