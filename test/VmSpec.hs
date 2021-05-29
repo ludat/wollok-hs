@@ -190,6 +190,24 @@ spec = do
                   method energia() = energia
                   method cambiarEnergia() {
                       energia = 2
+                      return self.energia()
+                  }
+              }
+              program x {
+                  var golondrina = new Golondrina(energia = 4)
+                  golondrina.cambiarEnergia()
+              }
+          |]
+          `shouldBe` [WInteger 2]
+
+      it "instance variables changes persist across references" $ do
+        stackAfterExecuting
+          [w|
+              class Golondrina {
+                  var energia
+                  method energia() = energia
+                  method cambiarEnergia() {
+                      energia = 2
                   }
               }
               program x {
