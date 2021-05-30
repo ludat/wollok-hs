@@ -237,6 +237,8 @@ compileExpression (WLiteralTrue) = [ Push $ WBoolean True ]
 compileExpression (WLiteralFalse) = [ Push $ WBoolean False ]
 compileExpression (WClosureLiteral WNoParameters body) =
   [ PushClosure $ compileStatements body ++ [Return] ]
+compileExpression (WClosureLiteral (WWithParameters []) body) =
+  [ PushClosure $ compileStatements body ++ [Return] ]
 
 compileExpression x = error $ show x
 

@@ -364,6 +364,42 @@ spec = do
               }
           |]
           `shouldBe` [WInteger 7]
+      it "variables declared inside a closure are local to that closure" $ do
+        stackAfterExecuting
+          [w|
+              class Coso {
+                method m1() {
+                  var x = 1
+                  {
+                      var x = 2
+                  }.apply()
+
+                  return x
+                }
+              }
+              program x {
+                  new Coso().m1()
+              }
+          |]
+          `shouldBe` [WInteger 1]
+      it "variables declared inside a closure are local to that closure" $ do
+        stackAfterExecuting
+          [w|
+              class Coso {
+                method m1() {
+                  var x = 1
+                  { =>
+                    x = 2
+                  }.apply()
+
+                  return x
+                }
+              }
+              program x {
+                  new Coso().m1()
+              }
+          |]
+          `shouldBe` [WInteger 2]
 
 stackAfterExecuting :: WFile -> [RuntimeValue]
 stackAfterExecuting (WFile imports libraryElements program) =
