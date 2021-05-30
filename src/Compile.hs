@@ -54,7 +54,7 @@ data RuntimeValue
   | WBoolean Bool
   | WNull
   | WObjectReference ObjectId
-  | WClosure [Instruction]
+  | WClosure RuntimeValue [Instruction]
   deriving (Show, Eq)
 
 type ObjectId = Int
@@ -89,7 +89,7 @@ classOf :: RuntimeValue -> ExecutionM ClassName
 classOf (WInteger _) = pure $ ClassName "Number"
 classOf (WBoolean _) = pure $ ClassName "Boolean"
 classOf (WNull) = pure $ ClassName "Null"
-classOf (WClosure _) = pure $ ClassName "Closure"
+classOf (WClosure _ _) = pure $ ClassName "Closure"
 classOf (WObjectReference objectId) = do
   WObject className _ <- dereference objectId
   pure className
@@ -389,8 +389,9 @@ runInstruction (SetVariable variableName) = do
     Nothing ->
       setInstanceVariable variableName newValue
 
-runInstruction (PushClosure instructions) =
-  push $ WClosure instructions
+runInstruction (PushClosure instructions) = do
+  self <- getSelf
+  push $ WClosure self instructions
 
 allocateObject :: WObject -> ExecutionM ObjectId
 allocateObject newObject = do
@@ -484,8 +485,8 @@ runNativeMethod receiver arguments className selector =
       let [WInteger minN, WInteger maxN] = arguments
       push $ WBoolean $ (self >= minN) && (self <= maxN)
     (ClassName "Closure", Selector "apply" 0) -> do
-      let WClosure instructions = receiver
-      pushNewStackFrame receiver Map.empty instructions
+      let WClosure self instructions = receiver
+      pushNewStackFrame self Map.empty instructions
     lookedUpMethod -> error $ "Couldn't find method: " ++ show lookedUpMethod
 
 lookupClassOf :: RuntimeValue -> ExecutionM WollokCompiledClass

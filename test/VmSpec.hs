@@ -23,9 +23,6 @@ spec = do
       it "resolves + native method for numbers" $ do
         stackAfterExecuting
           [w|
-              class Number {
-                  method +(other) native
-              }
               program x {
                   40 + 1
               }
@@ -34,9 +31,6 @@ spec = do
       it "treats + and - messages as different messages" $ do
         stackAfterExecuting
           [w|
-              class Number {
-                  method -(other) native
-              }
               program x {
                   41 - 1
               }
@@ -45,9 +39,6 @@ spec = do
       it "leaves the result of the message send in the stack" $ do
         stackAfterExecuting
           [w|
-              class Number {
-                  method +(other) native
-              }
               program x {
                   10
                   41 + 1
@@ -57,9 +48,6 @@ spec = do
       it "consumes the correct number of arguments from the stack during a message send for native methods" $ do
         stackAfterExecuting
           [w|
-              class Number {
-                  method between(min, max) native
-              }
               program x {
                   10.between(1, 20)
               }
@@ -83,48 +71,49 @@ spec = do
       it "can execute user-defined methods defined by single expression" $ do
         stackAfterExecuting
           [w|
-              class Number {
+              class Coso {
                   method twenty() = 20
               }
               program x {
-                  10.twenty()
+                  new Coso().twenty()
               }
           |]
           `shouldBe` [WInteger 20]
       it "can execute user-defined methods defined by block" $ do
         stackAfterExecuting
           [w|
-              class Number {
+              class Coso {
                   method twenty() {
                     return 20
                   }
               }
               program x {
-                  10.twenty()
+                  new Coso().twenty()
               }
           |]
           `shouldBe` [WInteger 20]
       it "methods defined by block with no return, return null" $ do
         stackAfterExecuting
           [w|
-              class Number {
+              class Coso {
                   method twenty() {
                     20
                   }
               }
               program x {
-                  10.twenty()
+                  new Coso().twenty()
               }
           |]
           `shouldBe` [WNull]
       it "self refers to the receiver of the message" $ do
         stackAfterExecuting
           [w|
-              class Number {
+              class Coso {
                   method myself() = self
+                  method ten() = 10
               }
               program x {
-                  10.myself()
+                  new Coso().myself().ten()
               }
           |]
           `shouldBe` [WInteger 10]
@@ -235,9 +224,6 @@ spec = do
       it "can obtain the value of a local variable defined in the same context" $ do
         stackAfterExecuting
           [w|
-              class Number {
-                  method +(other) native
-              }
               program x {
                   var n = 2
                   n + 1
@@ -349,12 +335,6 @@ spec = do
       it "calling a closure executes its body" $ do
         stackAfterExecuting
           [w|
-              class Number {
-                method +(a) native
-              }
-              class Closure {
-                method apply() native
-              }
               program x {
                   { return 7 }.apply() + 1
               }
@@ -363,20 +343,51 @@ spec = do
       it "executing a closure returns the result of the last statement" $ do
         stackAfterExecuting
           [w|
-              class Number {
-                method +(a) native
-              }
-              class Closure {
-                method apply() native
-              }
               program x {
                   { 7 }.apply() + 1
               }
           |]
           `shouldBe` [WInteger 8]
+      it "closures capture self" $ do
+        stackAfterExecuting
+          [w|
+              class Coso {
+                method myself() {
+                  return { self }
+                }
+                method m1() {
+                  return 7
+                }
+              }
+              program x {
+                  new Coso().myself().apply().m1()
+              }
+          |]
+          `shouldBe` [WInteger 7]
 
 stackAfterExecuting :: WFile -> [RuntimeValue]
-stackAfterExecuting = concatMap (toList . valueStack) . toList . vmStack . run . compile
+stackAfterExecuting (WFile imports libraryElements program) =
+  let
+      programWithStandardLibrary = WFile imports (standardLibrary ++ libraryElements) program
+  in concatMap (toList . valueStack) . toList . vmStack . run . compile $ programWithStandardLibrary
+
+standardLibrary :: [WLibraryElement]
+standardLibrary =
+  case [w|
+    class Closure {
+      method apply() native
+    }
+    class Number {
+      method +(a) native
+      method -(a) native
+      method between(a, b) native
+    }
+    class Boolean {
+    }
+    program x {}
+  |] of
+    WFile _ libraryElements _ -> libraryElements
+
 
 todoSpec :: IO ()
 todoSpec = error "Missing implementation"
