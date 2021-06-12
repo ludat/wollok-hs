@@ -63,15 +63,10 @@ data WObject
 
 data StackFrame = StackFrame
   { valueStack :: Stack RuntimeValue
-  , self :: RuntimeValue
-  , localVariableBindings :: Map String RuntimeValue
+  , thisContext :: ObjectId
   , programCounter :: Int
   , instructions :: [Instruction]
-  }
-
-instance Show StackFrame where
-  show StackFrame {..} =
-    unwords undefined
+  } deriving (Show)
 
 data VmState = VmState
   { vmStack :: Stack StackFrame
@@ -106,20 +101,22 @@ toList stack =
 vmInitialState :: WollokBytecode -> VmState
 vmInitialState (WollokBytecode {..}) =
   let
+    self = WNull
+    initialContext = WContext self Map.empty
+    initialContextId = 1
     emptyStackFrame =
       stackPush stackNew $
         StackFrame
-        { valueStack = stackNew
-        , self = error "no self"
-        , localVariableBindings = Map.empty
-        , programCounter = 0
-        , instructions = programBytecode
-        }
+          { valueStack = stackNew
+          , thisContext = initialContextId
+          , programCounter = 0
+          , instructions = programBytecode
+          }
   in
   VmState
     { vmStack = emptyStackFrame
     , vmClassesBytecode = classesBytecode
-    , vmObjectSpace = Map.empty
+    , vmObjectSpace = Map.singleton initialContextId initialContext
     }
 
 compile :: WFile -> WollokBytecode
@@ -314,9 +311,15 @@ infix 9 !?
 
 getSelf :: ExecutionM RuntimeValue
 getSelf = do
-  vmStack <- State.gets vmStack
-  let Just StackFrame {..} = stackPeek vmStack
+  (self, _) <- getThisContext
   pure self
+
+getThisContext :: ExecutionM (RuntimeValue, Map String RuntimeValue)
+getThisContext = do
+  stackFrame <- currentStackFrame
+  dereference (thisContext stackFrame) >>= \case
+    WContext self localVariables -> pure (self, localVariables)
+    _ -> undefined
 
 runInstruction :: Instruction -> ExecutionM ()
 runInstruction (Push value) =
@@ -386,8 +389,8 @@ runInstruction (SetInstanceVariable variableName) = do
 
 runInstruction (SetVariable variableName) = do
   newValue <- pop
-  stackFrame <- currentStackFrame
-  case Map.lookup variableName $ localVariableBindings stackFrame of
+  (_, localVariables) <- getThisContext
+  case Map.lookup variableName localVariables of
     Just _ ->
       setLocalVariable variableName newValue
     Nothing ->
@@ -400,7 +403,7 @@ runInstruction (PushClosure instructions) = do
 allocateObject :: WObject -> ExecutionM ObjectId
 allocateObject newObject = do
   vmState <- State.get
-  let newId = maximum $ (0 :) $ Map.keys $ vmObjectSpace vmState
+  let newId = (1+) $ maximum $ (0 :) $ Map.keys $ vmObjectSpace vmState
       newObjectSpace = Map.insert newId newObject $ vmObjectSpace vmState
   State.put $ vmState { vmObjectSpace = newObjectSpace }
   pure newId
@@ -442,21 +445,24 @@ dereference objectId = do
 
 declareLocalVariable :: String -> RuntimeValue -> ExecutionM ()
 declareLocalVariable name value = do
-  modifyStackFrame $
-    \stackFrame ->
-       (stackFrame { localVariableBindings = Map.insert name value $ localVariableBindings stackFrame }, ())
+  stackFrame <- currentStackFrame
+  updateReference (thisContext stackFrame) $
+    \(WContext self localVariables) ->
+        WContext self $
+          Map.insert name value localVariables
 
 setLocalVariable :: String -> RuntimeValue -> ExecutionM ()
 setLocalVariable name value = do
-  modifyStackFrame $
-    \stackFrame ->
-       (stackFrame { localVariableBindings = Map.insert name value $ localVariableBindings stackFrame }, ())
+  stackFrame <- currentStackFrame
+  updateReference (thisContext stackFrame) $
+    \(WContext self localVariables) ->
+        WContext self $
+          Map.insert name value localVariables
 
 lookupLocalVariable :: String -> ExecutionM (Maybe RuntimeValue)
 lookupLocalVariable name = do
-  vmState <- State.get
-  let Just stackFrame = stackPeek (vmStack vmState)
-  pure $ Map.lookup name $ localVariableBindings stackFrame
+  (_, localVariables) <- getThisContext
+  pure $ Map.lookup name $ localVariables
 
 activateMethod :: RuntimeValue -> MethodImplementation -> [RuntimeValue] -> ExecutionM ()
 activateMethod receiver method arguments = do
@@ -469,11 +475,17 @@ activateMethod receiver method arguments = do
 
 pushNewStackFrame :: RuntimeValue -> Map String RuntimeValue -> [Instruction] -> ExecutionM ()
 pushNewStackFrame self localVariables instructions = do
+  newContextId <- allocateObject $ WContext self localVariables
   vmStateInicial <- State.get
   State.put $ vmStateInicial
     { vmStack = stackPush
         (vmStack vmStateInicial)
-        (StackFrame stackNew self localVariables 0 instructions)
+        StackFrame
+          { valueStack = stackNew
+          , thisContext = newContextId
+          , programCounter = 0
+          , instructions = instructions
+          }
     }
 
 runNativeMethod :: RuntimeValue -> [RuntimeValue] -> ClassName -> Selector -> ExecutionM ()
