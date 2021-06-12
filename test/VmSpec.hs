@@ -382,7 +382,7 @@ spec = do
               }
           |]
           `shouldBe` [WInteger 1]
-      it "variables declared inside a closure are local to that closure" $ do
+      it "variable from the parent context can be set from a closure" $ do
         stackAfterExecuting
           [w|
               class Coso {
