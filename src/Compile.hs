@@ -1,5 +1,3 @@
-{-# LANGUAGE StandaloneDeriving #-}
-{-# LANGUAGE PatternSynonyms #-}
 {-# OPTIONS_GHC -Wno-unused-matches #-}
 {-# OPTIONS_GHC -Wno-orphans #-}
 module Compile where
@@ -12,7 +10,6 @@ import qualified Control.Monad.State.Strict as State
 import Data.Map.Strict (Map)
 import qualified Data.Map.Strict as Map
 import Control.Monad.Identity
-import Data.List (intercalate)
 import Data.Maybe (fromJust)
 
 data WollokBytecode = WollokBytecode
@@ -59,7 +56,9 @@ data RuntimeValue
 
 type ObjectId = Int
 
-data WObject = WObject ClassName (Map String RuntimeValue)
+data WObject
+  = WObject ClassName (Map String RuntimeValue)
+  | WContext RuntimeValue (Map String RuntimeValue)
   deriving (Show, Eq)
 
 data StackFrame = StackFrame
@@ -71,8 +70,8 @@ data StackFrame = StackFrame
   }
 
 instance Show StackFrame where
-  show (StackFrame {..}) =
-    intercalate " " undefined
+  show StackFrame {..} =
+    unwords undefined
 
 data VmState = VmState
   { vmStack :: Stack StackFrame
@@ -91,8 +90,11 @@ classOf (WBoolean _) = pure $ ClassName "Boolean"
 classOf (WNull) = pure $ ClassName "Null"
 classOf (WClosure _ _) = pure $ ClassName "Closure"
 classOf (WObjectReference objectId) = do
-  WObject className _ <- dereference objectId
-  pure className
+  dereference objectId
+    >>= \case
+      WObject className _ ->
+        pure className
+      WContext _ _ -> pure $ ClassName "Context"
 
 toList :: Stack a -> [a]
 toList stack =
@@ -421,8 +423,11 @@ lookupVariable variableName = do
     Nothing -> do
       self <- getSelf
       let WObjectReference objectId = self
-      WObject _ instanceVariables <- dereference objectId
-      pure $ fromJust $ Map.lookup variableName instanceVariables
+      dereference objectId
+        >>= \case
+          WObject _ instanceVariables ->
+            pure $ fromJust $ Map.lookup variableName instanceVariables
+          _ -> error $ "encontre un Context en self mientras buscaba la variable: '" ++ variableName ++ "'"
 
 updateReference :: ObjectId -> (WObject -> WObject) -> ExecutionM ()
 updateReference objectId f = do
