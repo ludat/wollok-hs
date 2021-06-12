@@ -382,7 +382,7 @@ spec = do
               }
           |]
           `shouldBe` [WInteger 1]
-      it "variable from the parent context can be set from a closure" $ do
+      it "variables from the parent context can be set from a closure" $ do
         stackAfterExecuting
           [w|
               class Coso {
@@ -400,6 +400,34 @@ spec = do
               }
           |]
           `shouldBe` [WInteger 2]
+      it "variables from the parent context can be read from a closure" $ do
+        stackAfterExecuting
+          [w|
+              class Coso {
+                method m1() {
+                  var x = 1
+                  return { => x }.apply()
+                }
+              }
+              program x {
+                  new Coso().m1()
+              }
+          |]
+          `shouldBe` [WInteger 1]
+      it "returns from a closure are local" $ do
+        stackAfterExecuting
+          [w|
+              class Coso {
+                method m1() {
+                  let x = { return 1 }.apply()
+                  return x + 2
+                }
+              }
+              program x {
+                  new Coso().m1()
+              }
+          |]
+          `shouldBe` [WInteger 3]
 
 stackAfterExecuting :: WFile -> [RuntimeValue]
 stackAfterExecuting (WFile imports libraryElements program) =
