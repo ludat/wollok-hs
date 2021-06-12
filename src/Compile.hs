@@ -428,18 +428,12 @@ allocateObject newObject = do
 
 lookupVariable :: String -> ExecutionM RuntimeValue
 lookupVariable variableName = do
-  maybeLocalVariable <- lookupLocalVariable variableName
-  case maybeLocalVariable of
-    Just localVariableValue -> do
-      pure localVariableValue
-    Nothing -> do
-      self <- getSelf
-      let WObjectReference objectId = self
-      dereference objectId
-        >>= \case
-          WObject _ instanceVariables ->
-            pure $ fromJust $ Map.lookup variableName instanceVariables
-          _ -> error $ "encontre un Context en self mientras buscaba la variable: '" ++ variableName ++ "'"
+  contextId <- lookupContextWithVariable variableName
+  dereference (fromJust contextId) >>= \case
+    (WContext _ _ localVariables) ->
+      pure $ fromJust $ Map.lookup variableName localVariables
+    (WObject _ instanceVariables) ->
+      pure $ fromJust $ Map.lookup variableName instanceVariables
 
 updateReference :: ObjectId -> (WObject -> WObject) -> ExecutionM ()
 updateReference objectId f = do
@@ -467,11 +461,6 @@ setLocalVariable name value = do
     \(WContext parent self localVariables) ->
         WContext parent self $
           Map.insert name value localVariables
-
-lookupLocalVariable :: String -> ExecutionM (Maybe RuntimeValue)
-lookupLocalVariable name = do
-  (_, _, localVariables) <- getThisContext
-  pure $ Map.lookup name $ localVariables
 
 activateMethod :: RuntimeValue -> MethodImplementation -> [RuntimeValue] -> ExecutionM ()
 activateMethod receiver method arguments = do
