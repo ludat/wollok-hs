@@ -336,9 +336,8 @@ runInstruction (Send selector) = do
   activateMethod receiver wollokMethod arguments
 
 runInstruction Return = do
-  VmState {..} <- State.get
   valueToReturn <- pop
-  stackFrame <- popStackFrame
+  _ <- popStackFrame
   push valueToReturn
 
 runInstruction (CreateInstance className constructorArgumentNames) = do
