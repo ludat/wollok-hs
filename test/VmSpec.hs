@@ -428,12 +428,38 @@ spec = do
               }
           |]
           `shouldBe` [WInteger 3]
+      it "try statements without throws doesn't run catch blocks" $ do
+        stackAfterExecuting
+          [w|
+              program x {
+                  try {
+                    0
+                  } catch e {
+                    1
+                  }
+              }
+          |]
+          `shouldBe` [WInteger 0]
+      fit "" $ do
+        stackAfterExecuting
+          [w|
+              program x {
+                  try {
+                    throw new Exception()
+                    0
+                  } catch e {
+                    1
+                  }
+              }
+          |]
+          `shouldBe` [WInteger 1]
 
 stackAfterExecuting :: WFile -> [RuntimeValue]
 stackAfterExecuting (WFile imports libraryElements program) =
   let
       programWithStandardLibrary = WFile imports (standardLibrary ++ libraryElements) program
-  in concatMap (toList . valueStack) . toList . vmStack . run . compile $ programWithStandardLibrary
+      [topStackFrame] = toList . vmStack . run . compile $ programWithStandardLibrary
+  in toList . valueStack $ topStackFrame
 
 standardLibrary :: [WLibraryElement]
 standardLibrary =
@@ -446,8 +472,8 @@ standardLibrary =
       method -(a) native
       method between(a, b) native
     }
-    class Boolean {
-    }
+    class Boolean {}
+    class Exception {}
     program x {}
   |] of
     WFile _ libraryElements _ -> libraryElements

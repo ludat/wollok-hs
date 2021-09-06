@@ -43,6 +43,7 @@ data Instruction
   | JumpIfFalse Int
   | Jump Int
   | PushClosure [Instruction]
+  | Throw
   deriving (Show, Eq)
 
 data RuntimeValue
@@ -237,6 +238,8 @@ compileExpression (WClosureLiteral WNoParameters body) =
   [ PushClosure $ compileStatements body ++ [Return] ]
 compileExpression (WClosureLiteral (WWithParameters []) body) =
   [ PushClosure $ compileStatements body ++ [Return] ]
+compileExpression (WTry block catchBlocks WNoThenAlways) =
+  compileStatements $ toStatementList block
 
 compileExpression x = error $ show x
 
@@ -269,7 +272,7 @@ compileStatement
   (VarDeclaration (WVariableDeclaration Const i NoIntialValue))
   = undefined
 compileStatement (WReturn e) = compileExpression e ++ [Return]
-compileStatement (WThrow w1) = undefined
+compileStatement (WThrow e) = compileExpression e ++ [ Throw ]
 compileStatement (WAssignment (Ident variableName) expression)
   = compileExpression expression ++ [ SetVariable variableName ]
 
@@ -397,6 +400,8 @@ runInstruction (PushClosure instructions) = do
   stackFrame <- currentStackFrame
   self <- getSelf
   push $ WClosure (thisContext stackFrame) self instructions
+runInstruction Throw = do
+  undefined
 
 lookupContextWithVariable :: String -> ExecutionM (Maybe ObjectId)
 lookupContextWithVariable variableName = do
