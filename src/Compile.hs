@@ -73,12 +73,12 @@ data VmState = VmState
   , vmObjectSpace :: Map ObjectId WObject
   } deriving (Show)
 
-type ExecutionM = State VmState
+type VmOperation = State VmState
 
 instance Eq a => Eq (Stack a) where
   (==) = (==) `on` toList
 
-classOf :: RuntimeValue -> ExecutionM ClassName
+classOf :: RuntimeValue -> VmOperation ClassName
 classOf (WInteger _) = pure $ ClassName "Number"
 classOf (WBoolean _) = pure $ ClassName "Boolean"
 classOf (WNull) = pure $ ClassName "Null"
@@ -280,7 +280,7 @@ run wollokBytecode =
     (`State.runStateT` vmInitialState wollokBytecode) $
     runInstructions
 
-runInstructions :: ExecutionM ()
+runInstructions :: VmOperation ()
 runInstructions = do
   maybeNextInstruction <- fetchNextInstruction
   case maybeNextInstruction of
@@ -289,7 +289,7 @@ runInstructions = do
       runInstructions
     Nothing -> pure ()
 
-fetchNextInstruction :: ExecutionM (Maybe Instruction)
+fetchNextInstruction :: VmOperation (Maybe Instruction)
 fetchNextInstruction = do
   StackFrame {..} <- currentStackFrame
   let currentInstruction = instructions !? programCounter
@@ -308,19 +308,19 @@ infix 9 !?
     go _ []     = Nothing
 {-# INLINE (!?) #-}
 
-getSelf :: ExecutionM RuntimeValue
+getSelf :: VmOperation RuntimeValue
 getSelf = do
   (_, self, _) <- getThisContext
   pure self
 
-getThisContext :: ExecutionM (Maybe ObjectId, RuntimeValue, Map String RuntimeValue)
+getThisContext :: VmOperation (Maybe ObjectId, RuntimeValue, Map String RuntimeValue)
 getThisContext = do
   stackFrame <- currentStackFrame
   dereference (thisContext stackFrame) >>= \case
     WContext parentContext self localVariables -> pure (parentContext, self, localVariables)
     _ -> undefined
 
-runInstruction :: Instruction -> ExecutionM ()
+runInstruction :: Instruction -> VmOperation ()
 runInstruction (Push value) =
   push value
 
@@ -397,7 +397,7 @@ runInstruction (PushClosure instructions) = do
   self <- getSelf
   push $ WClosure (thisContext stackFrame) self instructions
 
-lookupContextWithVariable :: String -> ExecutionM (Maybe ObjectId)
+lookupContextWithVariable :: String -> VmOperation (Maybe ObjectId)
 lookupContextWithVariable variableName = do
   stackFrame <- currentStackFrame
   go (thisContext stackFrame)
@@ -417,7 +417,7 @@ lookupContextWithVariable variableName = do
                     _ -> pure $ Nothing
         _ -> undefined
 
-allocateObject :: WObject -> ExecutionM ObjectId
+allocateObject :: WObject -> VmOperation ObjectId
 allocateObject newObject = do
   vmState <- State.get
   let newId = (1+) $ maximum $ (0 :) $ Map.keys $ vmObjectSpace vmState
@@ -425,7 +425,7 @@ allocateObject newObject = do
   State.put $ vmState { vmObjectSpace = newObjectSpace }
   pure newId
 
-lookupVariable :: String -> ExecutionM RuntimeValue
+lookupVariable :: String -> VmOperation RuntimeValue
 lookupVariable variableName = do
   contextId <- lookupContextWithVariable variableName
   dereference (fromJust contextId) >>= \case
@@ -434,18 +434,18 @@ lookupVariable variableName = do
     (WObject _ instanceVariables) ->
       pure $ fromJust $ Map.lookup variableName instanceVariables
 
-updateReference :: ObjectId -> (WObject -> WObject) -> ExecutionM ()
+updateReference :: ObjectId -> (WObject -> WObject) -> VmOperation ()
 updateReference objectId f = do
   vmState <- State.get
   let newObjectSpace = Map.update (Just . f) objectId $ vmObjectSpace vmState
   State.put $ vmState { vmObjectSpace = newObjectSpace }
 
-dereference :: ObjectId -> ExecutionM WObject
+dereference :: ObjectId -> VmOperation WObject
 dereference objectId = do
   vmState <- State.get
   pure $ fromJust $ Map.lookup objectId $ vmObjectSpace vmState
 
-declareLocalVariable :: String -> RuntimeValue -> ExecutionM ()
+declareLocalVariable :: String -> RuntimeValue -> VmOperation ()
 declareLocalVariable name value = do
   stackFrame <- currentStackFrame
   updateReference (thisContext stackFrame) $
@@ -453,7 +453,7 @@ declareLocalVariable name value = do
         WContext parent self $
           Map.insert name value localVariables
 
-setLocalVariable :: String -> RuntimeValue -> ExecutionM ()
+setLocalVariable :: String -> RuntimeValue -> VmOperation ()
 setLocalVariable name value = do
   stackFrame <- currentStackFrame
   updateReference (thisContext stackFrame) $
@@ -461,7 +461,7 @@ setLocalVariable name value = do
         WContext parent self $
           Map.insert name value localVariables
 
-activateMethod :: RuntimeValue -> MethodImplementation -> [RuntimeValue] -> ExecutionM ()
+activateMethod :: RuntimeValue -> MethodImplementation -> [RuntimeValue] -> VmOperation ()
 activateMethod receiver method arguments = do
   case method of
     Native className' selector' -> do
@@ -470,7 +470,7 @@ activateMethod receiver method arguments = do
       let localVariables = Map.fromList $ zip parameters arguments
       pushNewStackFrame Nothing receiver localVariables instructions
 
-pushNewStackFrame :: Maybe ObjectId -> RuntimeValue -> Map String RuntimeValue -> [Instruction] -> ExecutionM ()
+pushNewStackFrame :: Maybe ObjectId -> RuntimeValue -> Map String RuntimeValue -> [Instruction] -> VmOperation ()
 pushNewStackFrame parentContextId self localVariables instructions = do
   newContextId <- allocateObject $ WContext parentContextId self localVariables
   State.modify $ \vmState ->
@@ -485,7 +485,7 @@ pushNewStackFrame parentContextId self localVariables instructions = do
             }
       }
 
-runNativeMethod :: RuntimeValue -> [RuntimeValue] -> ClassName -> Selector -> ExecutionM ()
+runNativeMethod :: RuntimeValue -> [RuntimeValue] -> ClassName -> Selector -> VmOperation ()
 runNativeMethod receiver arguments className selector =
   case (className, selector) of
     (ClassName "Number", Selector "+" 1) -> do
@@ -505,11 +505,11 @@ runNativeMethod receiver arguments className selector =
       pushNewStackFrame (Just parentContextId) self Map.empty instructions
     lookedUpMethod -> error $ "Couldn't find method: " ++ show lookedUpMethod
 
-lookupClassOf :: RuntimeValue -> ExecutionM WollokCompiledClass
+lookupClassOf :: RuntimeValue -> VmOperation WollokCompiledClass
 lookupClassOf object = do
   lookupClass =<< classOf object
 
-lookupClass :: ClassName -> ExecutionM WollokCompiledClass
+lookupClass :: ClassName -> VmOperation WollokCompiledClass
 lookupClass className = do
   (VmState {..}) <- State.get
   case Map.lookup className vmClassesBytecode of
@@ -520,33 +520,33 @@ lookupMethod :: WollokCompiledClass -> Selector -> Maybe MethodImplementation
 lookupMethod (WollokCompiledClass _ methodDictionary) selector =
   Map.lookup selector methodDictionary
 
-popMany :: Int -> ExecutionM [RuntimeValue]
+popMany :: Int -> VmOperation [RuntimeValue]
 popMany n = fmap reverse $ replicateM n pop
 
-currentStackFrame :: ExecutionM StackFrame
+currentStackFrame :: VmOperation StackFrame
 currentStackFrame = do
   vmState <- State.get
   let Just stackFrame = stackPeek (vmStack vmState)
   pure stackFrame
 
-incrementPc :: ExecutionM ()
+incrementPc :: VmOperation ()
 incrementPc = offsetPcBy 1
 
-offsetPcBy :: Int -> ExecutionM ()
+offsetPcBy :: Int -> VmOperation ()
 offsetPcBy offset = modifyPc (+ offset)
 
-modifyPc :: (Int -> Int) -> ExecutionM ()
+modifyPc :: (Int -> Int) -> VmOperation ()
 modifyPc f = do
   modifyStackFrame $ \stackFrame -> (stackFrame { programCounter = f $ programCounter stackFrame}, ())
 
-popStackFrame :: ExecutionM StackFrame
+popStackFrame :: VmOperation StackFrame
 popStackFrame = do
   vmState <- State.get
   let Just (restOfFrames, stackFrame) = stackPop (vmStack vmState)
   State.put $ vmState { vmStack = restOfFrames }
   pure stackFrame
 
-modifyStackFrame :: (StackFrame -> (StackFrame, a)) -> ExecutionM a
+modifyStackFrame :: (StackFrame -> (StackFrame, a)) -> VmOperation a
 modifyStackFrame modifyFunction = do
   vmState <- State.get
   let Just (restOfFrames, stackFrame) = stackPop (vmStack vmState)
@@ -556,15 +556,15 @@ modifyStackFrame modifyFunction = do
     }
   pure result
 
-pop :: ExecutionM RuntimeValue
+pop :: VmOperation RuntimeValue
 pop = do
   modifyValueStack $ \valuesStack -> fromJust $ stackPop valuesStack
 
-push :: RuntimeValue -> ExecutionM ()
+push :: RuntimeValue -> VmOperation ()
 push value = do
   modifyValueStack $ \valuesStack -> (stackPush valuesStack value, ())
 
-modifyValueStack :: (Stack RuntimeValue -> (Stack RuntimeValue, a)) -> ExecutionM a
+modifyValueStack :: (Stack RuntimeValue -> (Stack RuntimeValue, a)) -> VmOperation a
 modifyValueStack modifyFunction = do
   modifyStackFrame $ \stackFrame ->
     let
