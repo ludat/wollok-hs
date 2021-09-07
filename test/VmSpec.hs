@@ -5,6 +5,7 @@ module VmSpec where
 import Test.Hspec
 import Parser
 import Compile
+import Execute
 import Parser.AbsGrammar
 
 spec :: Spec
