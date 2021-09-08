@@ -3,14 +3,30 @@
 module Execute where
 
 import Data.Stack
-import Data.Function ( on )
+import Data.Function ( on, (&) )
 import Control.Monad.State.Strict
 import qualified Control.Monad.State.Strict as State
 import Data.Map.Strict (Map)
 import qualified Data.Map.Strict as Map
 import Control.Monad.Identity
 import Data.Maybe (fromJust)
-import Compile
+
+import Bytecode
+
+data RuntimeValue
+  = WInteger Integer
+  | WBoolean Bool
+  | WNull
+  | WObjectReference ObjectId
+  | WClosure ObjectId RuntimeValue [Instruction]
+  deriving (Show, Eq)
+
+type ObjectId = Int
+
+data WObject
+  = WObject ClassName (Map String RuntimeValue)
+  | WContext (Maybe ObjectId) RuntimeValue (Map String RuntimeValue)
+  deriving (Show, Eq)
 
 data StackFrame = StackFrame
   { valueStack :: Stack RuntimeValue
@@ -118,8 +134,14 @@ getThisContext = do
     _ -> undefined
 
 runInstruction :: Instruction -> VmOperation ()
-runInstruction (Push value) =
-  push value
+runInstruction (PushInteger value) =
+  push (WInteger value)
+
+runInstruction (PushBoolean value) =
+  push (WBoolean value)
+
+runInstruction PushNull =
+  push WNull
 
 runInstruction PushSelf = do
   push =<< getSelf
@@ -139,24 +161,33 @@ runInstruction Return = do
 
 runInstruction (CreateInstance className constructorArgumentNames) = do
   (WollokCompiledClass instanceVariableDefinitions _) <- lookupClass className
+  constructorArguments <- popConstructorArguments
 
-  constructorArgumentValues <- popMany $ length constructorArgumentNames
-  let constructorArguments = Map.fromList $ zip constructorArgumentNames (fmap (\value -> [Push value]) constructorArgumentValues)
-
-  let instanceVariablesInstructions = Map.toList $
-        Map.union constructorArguments $ Map.mapMaybe id instanceVariableDefinitions
-
-  let newObject = WObject className Map.empty
+  let instanceVariablesInitializationForArguments =
+        Map.mapWithKey (\name value -> [PushVariable name]) constructorArguments
 
   let initializeInstructions =
-        concatMap
-          (\(name, instructions) -> instructions ++ [SetVariable name])
-          instanceVariablesInstructions
-        ++ [PushSelf, Return]
+        instanceVariablesInitializationForArguments
+        & completedWith instanceVariableDefinitions
+        & Map.mapWithKey (\name instructions -> instructions ++ [SetInstanceVariable name])
+        & concatElems
+        & (++ [PushSelf, Return])
 
+  let newObject = WObject className Map.empty
   newObjectId <- allocateObject newObject
 
-  pushNewStackFrame Nothing (WObjectReference newObjectId) Map.empty initializeInstructions
+  pushNewStackFrame Nothing (WObjectReference newObjectId) constructorArguments initializeInstructions
+
+  where
+    popConstructorArguments = do
+      constructorArgumentValues <- popMany $ length constructorArgumentNames
+      pure $ Map.fromList $ zip constructorArgumentNames constructorArgumentValues
+
+    completedWith instanceVariableDefinitions =
+      let instanceVariablesDefaultInitialization = Map.mapMaybe id instanceVariableDefinitions
+      in (`Map.union` instanceVariablesDefaultInitialization)
+
+    concatElems = concat . Map.elems
 
 runInstruction (PushVariable variableName) = do
   variableValue <- lookupVariable variableName
@@ -188,6 +219,17 @@ runInstruction (SetVariable variableName) = do
     (WObject className instanceVariables) ->
       WObject className $
       Map.insert variableName newValue instanceVariables
+
+runInstruction (SetInstanceVariable variableName) = do
+  self <- getSelf
+  let (WObjectReference selfId) = self
+  newValue <- pop
+  updateReference selfId $ \case
+    (WObject className instanceVariables) ->
+      WObject className $
+      Map.insert variableName newValue instanceVariables
+    _ ->
+      error "self should always be an object"
 
 runInstruction (PushClosure instructions) = do
   stackFrame <- currentStackFrame

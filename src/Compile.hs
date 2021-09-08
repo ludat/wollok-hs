@@ -3,56 +3,9 @@
 module Compile where
 
 import Parser.AbsGrammar
-import Data.Map.Strict (Map)
 import qualified Data.Map.Strict as Map
 
-data WollokBytecode = WollokBytecode
-  { programBytecode :: [Instruction]
-  , classesBytecode :: CompiledClasses
-  } deriving (Show, Eq)
-
-type CompiledClasses = Map ClassName WollokCompiledClass
-
-data WollokCompiledClass = WollokCompiledClass (Map String (Maybe [Instruction])) (Map Selector MethodImplementation)
-  deriving (Show, Eq)
-
-data MethodImplementation = Custom [String] [Instruction] | Native ClassName Selector
-  deriving (Show, Eq)
-
-data Selector = Selector String Int
-  deriving (Show, Eq, Ord)
-
-newtype ClassName = ClassName String
-  deriving (Show, Eq, Ord)
-
-data Instruction
-  = Push RuntimeValue
-  | PushSelf
-  | Send Selector
-  | Return
-  | CreateInstance ClassName [String]
-  | SetVariable String
-  | PushVariable String
-  | DeclareLocalVariable String
-  | JumpIfFalse Int
-  | Jump Int
-  | PushClosure [Instruction]
-  deriving (Show, Eq)
-
-data RuntimeValue
-  = WInteger Integer
-  | WBoolean Bool
-  | WNull
-  | WObjectReference ObjectId
-  | WClosure ObjectId RuntimeValue [Instruction]
-  deriving (Show, Eq)
-
-type ObjectId = Int
-
-data WObject
-  = WObject ClassName (Map String RuntimeValue)
-  | WContext (Maybe ObjectId) RuntimeValue (Map String RuntimeValue)
-  deriving (Show, Eq)
+import Bytecode
 
 compile :: WFile -> WollokBytecode
 compile (WFile imports classes program) =
@@ -102,7 +55,7 @@ compileMethod className (WMethodDeclaration name parameterIdents body) =
         (ImplementedByExpression e) ->
           Custom parameters $ compileExpression e ++ [Return]
         (ImplementedByBlock statements) ->
-          Custom parameters $ compileStatements statements ++ [Push WNull, Return]
+          Custom parameters $ compileStatements statements ++ [PushNull, Return]
   in (selector, compiledMethodBody)
 
 identToString :: Ident -> String
@@ -136,7 +89,7 @@ nameFrom (WPostfixOpSelector OpPostfix1) = "++"
 nameFrom (WPostfixOpSelector OpPostfix2) = "--"
 
 compileExpression :: WExpression -> [Instruction]
-compileExpression (WNumberLiteral i) = [Push $ WInteger i]
+compileExpression (WNumberLiteral i) = [PushInteger i]
 compileExpression (WAddExpression receiver opAdd argument) =
   compileExpression $ WMessageSend receiver (Ident $ nameFrom (WAddOpSelector opAdd)) [argument]
 compileExpression (WMessageSend receiver (Ident messageName) arguments) =
@@ -167,8 +120,8 @@ compileExpression (WIf condition thenBlock (WElse elseBlock))
       compileExpression condition ++ [ JumpIfFalse $ length compiledThen + 1 ]
         ++ compiledThen ++ [ Jump $ length compiledElse ]
         ++ compiledElse
-compileExpression (WLiteralTrue) = [ Push $ WBoolean True ]
-compileExpression (WLiteralFalse) = [ Push $ WBoolean False ]
+compileExpression (WLiteralTrue) = [ PushBoolean True ]
+compileExpression (WLiteralFalse) = [ PushBoolean False ]
 compileExpression (WClosureLiteral WNoParameters body) =
   [ PushClosure $ compileStatements body ++ [Return] ]
 compileExpression (WClosureLiteral (WWithParameters []) body) =
@@ -194,7 +147,7 @@ compileStatement
   (VarDeclaration (WVariableDeclaration Var
                                         (Ident variableName)
                                         NoIntialValue))
-  = [ Push WNull, DeclareLocalVariable variableName ]
+  = [ PushNull, DeclareLocalVariable variableName ]
 compileStatement
   (VarDeclaration (WVariableDeclaration Const
                                         (Ident variableName)
