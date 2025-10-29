@@ -8,6 +8,7 @@ import Control.Monad.State.Strict
 import qualified Control.Monad.State.Strict as State
 import Data.Map.Strict (Map)
 import qualified Data.Map.Strict as Map
+import Control.Monad (replicateM)
 import Control.Monad.Identity
 import Data.Maybe (fromJust)
 
